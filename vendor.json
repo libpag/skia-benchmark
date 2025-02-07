@@ -4,7 +4,6 @@
   "vendors": [
     {
       "name": "skia",
-      "dir": "../third_party/skia",
       "scripts": {
         "mac": {
           "executor": "bash",

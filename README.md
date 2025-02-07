@@ -4,7 +4,7 @@ graphics library on different platforms.
 
 ## Build Prerequisites
 
-skia-benchmark uses **C++17** features. Here are the minimum tools needed to build TGFX on different platforms:
+Here are the minimum tools needed to build skia-benchmark on different platforms:
 
 - Xcode 11.0+
 - GCC 9.0+
@@ -12,6 +12,9 @@ skia-benchmark uses **C++17** features. Here are the minimum tools needed to bui
 - NodeJS 14.14.0+
 - Ninja 1.9.0+
 - CMake 3.13.0+
+- QT 5.13.0+
+- NDK 19.2+ (**19.2.5345600 recommended**)
+- Emscripten 3.1.58+
 
 
 Please note the following additional notices:

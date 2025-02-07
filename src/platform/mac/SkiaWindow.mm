@@ -41,9 +41,14 @@
   std::unique_ptr<skiawindow::WindowContext> windowContext;
   std::unique_ptr<benchmark::AppHost> appHost;
   int drawIndex;
+  CVDisplayLinkRef displayLink;
 }
 
 - (void)dealloc {
+  if (displayLink != nil) {
+    CVDisplayLinkStop(displayLink);
+    CVDisplayLinkRelease(displayLink);
+  }
   [window release];
   [view release];
   [super dealloc];
@@ -55,6 +60,15 @@
 
 - (void)windowDidResize:(NSNotification*)notification {
   [self updateSize];
+}
+
+static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const CVTimeStamp*,
+                                    CVOptionFlags, CVOptionFlags*, void* context) {
+  auto self = (SkiaWindow*)context;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self redraw];
+  });
+  return kCVReturnSuccess;
 }
 
 - (void)open {
@@ -83,8 +97,15 @@
 
   [self updateSize];
   drawIndex = 0;
-  CADisplayLink* displayLink = [view displayLinkWithTarget:self selector:@selector(redraw)];
-  [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+  if (@available(macOS 14, *)) {
+    displayLink = nil;
+    CADisplayLink* caDisplayLink = [view displayLinkWithTarget:self selector:@selector(redraw)];
+    [caDisplayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+  } else {
+    CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
+    CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback, self);
+    CVDisplayLinkStart(displayLink);
+  }
 }
 
 - (void)handleClick:(NSClickGestureRecognizer*)gestureRecognizer {

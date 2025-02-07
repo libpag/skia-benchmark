@@ -20,26 +20,37 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
           -Wno-nonportable-include-path)
 endif ()
 
+if (NOT SKIA_DIR)
+    set(SKIA_DIR third_party/skia)
+else ()
+    set(HAS_CUSTOM_SKIA_DIR ON)
+endif ()
+get_filename_component(SKIA_DIR "${SKIA_DIR}" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+if (HAS_CUSTOM_SKIA_DIR)
+    message("SKIA_DIR: ${SKIA_DIR}")
+endif ()
+list(APPEND BENCH_INCLUDES ${SKIA_DIR})
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 list(APPEND BENCH_INCLUDES src)
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 if (IOS)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/ios/*.mm)
+  list(APPEND SRC_FILES ${PLATFORM_FILES})
 elseif (ANDROID)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/android/*.cpp)
+  list(APPEND SRC_FILES ${PLATFORM_FILES})
 elseif (MACOS)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/mac/*.mm)
+  list(APPEND SRC_FILES ${PLATFORM_FILES})
 elseif (WIN32)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/win/*.cpp)
+  list(APPEND SRC_FILES ${PLATFORM_FILES})
 endif ()
-list(APPEND SRC_FILES ${PLATFORM_FILES})
-
-set(SKIA_DIR third_party/skia)
-get_filename_component(SKIA_DIR "${SKIA_DIR}" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-list(APPEND BENCH_INCLUDES ${SKIA_DIR})
+list(APPEND BENCHMARK_LIBS ${SKIA_SHARED_LIBS})
 
 list(APPEND BENCH_STATIC_VENDORS skia)
-
 add_vendor_target(bench-vendor STATIC_VENDORS ${BENCH_STATIC_VENDORS})
 find_vendor_libraries(bench-vendor STATIC BENCH_VENDOR_STATIC_LIBRARIES)
 
@@ -61,12 +72,13 @@ target_compile_definitions(${COMP_TARGET} PRIVATE
 
 target_include_directories(${COMP_TARGET} PRIVATE ${BENCH_INCLUDES})
 target_compile_options(${COMP_TARGET} PUBLIC ${BENCH_COMPILE_OPTIONS})
-target_link_libraries(${COMP_TARGET} PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES})
+target_link_libraries(${COMP_TARGET} PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES} ${BENCHMARK_LIBS})
 
 if (APPLE)
     target_link_libraries(${COMP_TARGET} PRIVATE
             "-framework Cocoa"
             "-framework OpenGL"
+            "-framework CoreVideo"
     )
 endif ()
 
