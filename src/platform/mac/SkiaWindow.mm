@@ -114,6 +114,9 @@
     skiawindow::MacWindowInfo info;
     info.mainView = [window contentView];
     windowContext = MakeGLForMac(info, skiawindow::DisplayParams());
+  }
+
+  if (windowContext == nullptr) {
     return;
   }
 
