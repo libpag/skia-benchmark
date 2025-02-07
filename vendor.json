@@ -1,0 +1,16 @@
+{
+  "source": "third_party",
+  "out": "third_party/out",
+  "vendors": [
+    {
+      "name": "skia",
+      "scripts": {
+        "mac": {
+          "executor": "bash",
+          "file": "scripts/skia/build_mac.sh"
+        }
+      }
+    }
+  ]
+
+}
