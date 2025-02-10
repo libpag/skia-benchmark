@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(Benchmark)
-
-set(COMP_TARGET Benchmark)
+project(Skia-Benchmark)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 include(./third_party/vendor_tools/vendor.cmake)
@@ -52,10 +50,10 @@ list(APPEND BENCH_STATIC_VENDORS skia)
 add_vendor_target(bench-vendor STATIC_VENDORS ${BENCH_STATIC_VENDORS})
 find_vendor_libraries(bench-vendor STATIC BENCH_VENDOR_STATIC_LIBRARIES)
 
-add_executable(${COMP_TARGET} ${SRC_FILES})
-add_dependencies(${COMP_TARGET} bench-vendor)
+add_executable(Benchmark ${SRC_FILES})
+add_dependencies(Benchmark bench-vendor)
 
-target_compile_definitions(${COMP_TARGET} PRIVATE
+target_compile_definitions(Benchmark PRIVATE
         -DSK_GANESH
         -DSK_GL
         -DSK_DEFAULT_TYPEFACE_IS_EMPTY
@@ -68,8 +66,8 @@ target_compile_definitions(${COMP_TARGET} PRIVATE
         -DSKIA_IMPLEMENTATION=1
 )
 
-target_include_directories(${COMP_TARGET} PRIVATE ${BENCH_INCLUDES})
-target_compile_options(${COMP_TARGET} PUBLIC ${BENCH_COMPILE_OPTIONS})
-target_link_libraries(${COMP_TARGET} PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES} ${BENCHMARK_LIBS})
+target_include_directories(Benchmark PRIVATE ${BENCH_INCLUDES})
+target_compile_options(Benchmark PUBLIC ${BENCH_COMPILE_OPTIONS})
+target_link_libraries(Benchmark PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES} ${BENCHMARK_LIBS})
 
 
