@@ -22,6 +22,7 @@
 #include <filesystem>
 #include "base/AppHost.h"
 #include "base/Bench.h"
+#include "include/core/SkFontMgr.h"
 #include "include/core/SkSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/GrbackendSurface.h"
@@ -118,6 +119,8 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
   auto height = static_cast<int>(round(size.height));
   if (appHost == nullptr) {
     appHost = std::make_unique<benchmark::AppHost>();
+    auto typeface = SkFontMgr::RefDefault()->matchFamilyStyle("Helvetica", SkFontStyle());
+    appHost->addTypeface("default", typeface);
   }
   auto contentScale = static_cast<float>(size.height / view.bounds.size.height);
   auto sizeChanged = appHost->updateScreen(width, height, contentScale);

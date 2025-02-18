@@ -36,7 +36,7 @@ class GLWindowContext : public WindowContext {
   void setDisplayParams(const DisplayParams& params) override;
 
  protected:
-  GLWindowContext(const DisplayParams&);
+  explicit GLWindowContext(const DisplayParams&);
   // This should be called by subclass constructor. It is also called when window/display
   // parameters change. This will in turn call onInitializeContext().
   void initializeContext();

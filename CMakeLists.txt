@@ -18,6 +18,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
           -Wno-nonportable-include-path)
 endif ()
 
+if (MSVC)
+  add_compile_options(/wd4244)
+  add_compile_options("/utf-8")
+  string(TOLOWER ${MSVC_C_ARCHITECTURE_ID} ARCH)
+endif (MSVC)
+
 set(SKIA_DIR third_party/skia)
 get_filename_component(SKIA_DIR "${SKIA_DIR}" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -25,7 +31,10 @@ list(APPEND BENCH_INCLUDES ${SKIA_DIR})
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND BENCH_INCLUDES src)
-file(GLOB_RECURSE SRC_FILES src/*.cpp)
+file(GLOB_RECURSE SRC_FILES
+        src/base/*.cpp
+        src/benchmark/*.cpp
+        src/window_context/*.cpp)
 
 if (IOS)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/ios/*.mm)
@@ -43,6 +52,18 @@ elseif (MACOS)
 elseif (WIN32)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/win/*.cpp)
   list(APPEND SRC_FILES ${PLATFORM_FILES})
+  find_package(OpenGL REQUIRED)
+  list(APPEND BENCHMARK_LIBS ${OPENGL_LIBRARIES})
+
+  if (${CMAKE_SYSTEM_VERSION} VERSION_GREATER_EQUAL 6.3) # Windows 8.1 or later
+    add_definitions(-D_WIN32_WINNT=0x0603)
+    find_library(SHCORE_LIB SHCore)
+    list(APPEND BENCHMARK_LIBS ${SHCORE_LIB})
+  else ()
+    add_definitions(-D_WIN32_WINNT=0x0601) # Windows 7
+    find_library(USER32 user32)
+    list(APPEND BENCHMARK_LIBS ${USER32})
+  endif ()
 endif ()
 list(APPEND BENCHMARK_LIBS ${SKIA_SHARED_LIBS})
 
@@ -50,23 +71,33 @@ list(APPEND BENCH_STATIC_VENDORS skia)
 add_vendor_target(bench-vendor STATIC_VENDORS ${BENCH_STATIC_VENDORS})
 find_vendor_libraries(bench-vendor STATIC BENCH_VENDOR_STATIC_LIBRARIES)
 
-add_executable(Benchmark ${SRC_FILES})
+if (WIN32)
+  add_executable(Benchmark WIN32 ${SRC_FILES})
+else ()
+  add_executable(Benchmark ${SRC_FILES})
+endif ()
 add_dependencies(Benchmark bench-vendor)
 
-target_compile_definitions(Benchmark PRIVATE
-        -DSK_GANESH
-        -DSK_GL
-        -DSK_DEFAULT_TYPEFACE_IS_EMPTY
-        -DSK_DISABLE_LEGACY_DEFAULT_TYPEFACE
-        -DSK_ENABLE_PRECOMPILE
-        -DSK_ASSUME_GL=1
-        -DSK_USE_PERFETTO
-        -DSK_ENABLE_API_AVAILABLE
-        -DSK_GAMMA_APPLY_TO_A8
-        -DSKIA_IMPLEMENTATION=1
-)
+list(APPEND BENCH_DEFINES -DSK_GANESH -DSK_GL -DSK_DEFAULT_TYPEFACE_IS_EMPTY
+        -DSK_DISABLE_LEGACY_DEFAULT_TYPEFACE -DSK_ENABLE_PRECOMPILE
+        -DSK_GAMMA_APPLY_TO_A8 -DSKIA_IMPLEMENTATION=1)
+if (WIN32)
+  list(APPEND BENCH_DEFINES
+          -DWIN32_LEAN_AND_MEAN
+          -DNOMINMAX
+          -DSK_FONTMGR_DIRECTWRITE_AVAILABLE
+          -DSK_TYPEFACE_FACTORY_DIRECTWRITE
+          $<$<CONFIG:Debug>:GR_TEST_UTILS=1>
+          $<$<CONFIG:Debug>:SK_ENABLE_DUMP_GPU>
+          $<$<CONFIG:Debug>:SK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1>
+          $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
+  )
+else ()
+  list(APPEND BENCH_DEFINES -DSK_ASSUME_GL=1 -DSK_USE_PERFETTO -DSK_ENABLE_API_AVAILABLE)
+endif ()
 
 target_include_directories(Benchmark PRIVATE ${BENCH_INCLUDES})
+target_compile_definitions(Benchmark PRIVATE ${BENCH_DEFINES})
 target_compile_options(Benchmark PUBLIC ${BENCH_COMPILE_OPTIONS})
 target_link_libraries(Benchmark PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES} ${BENCHMARK_LIBS})
 

@@ -17,6 +17,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <include/core/SkTypeface.h>
+#include <memory>
+#include <unordered_map>
 
 namespace benchmark {
 /**
@@ -54,15 +57,25 @@ class AppHost {
   }
 
   /**
+   * Returns a typeface with the given name.
+   */
+  sk_sp<SkTypeface> getTypeFace(const std::string& name) const;
+  /**
    * Updates the screen size and density. The default values are 1280x720 and 1.0. The width and
    * height are in pixels, and the density is the ratio of physical pixels to logical pixels.
    * Returns true if the screen size or density has changed.
    */
   bool updateScreen(int width, int height, float density);
 
+  /**
+   * Adds a typeface for the given resouce name
+   */
+  void addTypeface(const std::string& name, sk_sp<SkTypeface> typeface);
+
  private:
   int _width = 1024;
   int _height = 720;
   float _density = 1.0f;
+  std::unordered_map<std::string, sk_sp<SkTypeface>> typefaces = {};
 };
 }  // namespace benchmark

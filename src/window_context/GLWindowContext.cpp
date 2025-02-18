@@ -13,7 +13,6 @@
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "src/base/SkMathPriv.h"
-#include "src/gpu/ganesh/GrCaps.h"
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
 #include "src/gpu/ganesh/gl/GrGLUtil.h"
 
@@ -37,7 +36,6 @@ void GLWindowContext::initializeContext() {
   if (!context && _displayParams.MSAASampleCount > 1) {
     _displayParams.MSAASampleCount /= 2;
     this->initializeContext();
-    return;
   }
 }
 

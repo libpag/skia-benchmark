@@ -17,10 +17,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "SolidRectBench.h"
+#include <chrono>
 #include <iomanip>
 #include <random>
 #include <sstream>
-#include "include/core/SkFontMgr.h"
 
 namespace benchmark {
 static constexpr size_t MAX_RECT_COUNT = 300000;
@@ -73,9 +73,7 @@ void SolidRectBench::Init(const AppHost* host) {
   height = hostHeight;
   fpsBackgroundRect =
       SkRect::MakeWH(static_cast<float>(width), FPS_BACKGROUND_HEIGHT * host->density());
-  sk_sp<SkFontMgr> fontMgr = SkFontMgr::RefDefault();
-  sk_sp<SkTypeface> typeface = fontMgr->matchFamilyStyle("Helvetica", SkFontStyle());
-  fpsFont = SkFont(typeface, 40 * host->density());
+  fpsFont = SkFont(host->getTypeFace("default"), 40 * host->density());
   InitRects();
   InitPaints();
 }

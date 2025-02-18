@@ -24,6 +24,14 @@ AppHost::AppHost(int width, int height, float density)
     : _width(width), _height(height), _density(density) {
 }
 
+sk_sp<SkTypeface> AppHost::getTypeFace(const std::string& name) const {
+  auto result = typefaces.find(name);
+  if (result != typefaces.end()) {
+    return result->second;
+  }
+  return nullptr;
+}
+
 bool AppHost::updateScreen(int width, int height, float density) {
   if (width <= 0 || height <= 0) {
     std::cout << "AppHost::updateScreen() width or height is invalid!\n";
@@ -41,4 +49,21 @@ bool AppHost::updateScreen(int width, int height, float density) {
   _density = density;
   return true;
 }
+
+void AppHost::addTypeface(const std::string& name, sk_sp<SkTypeface> typeface) {
+  if (name.empty()) {
+    std::cout << "AppHost::addTypeface() name is empty!\n";
+    return;
+  }
+  if (typeface == nullptr) {
+    std::cout << "AppHost::addTypeface() typeface is nullptr!\n";
+    return;
+  }
+  if (typefaces.count(name) > 0) {
+    std::cout << "AppHost::addTypeface() typeface with name " << name << " aleardy exists!\n";
+    return;
+  }
+  typefaces[name] = std::move(typeface);
+}
+
 }  // namespace benchmark
