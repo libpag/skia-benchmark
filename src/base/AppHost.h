@@ -17,9 +17,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <unordered_map>
-#include <memory>
 #include <include/core/SkTypeface.h>
+#include <memory>
+#include <unordered_map>
 
 namespace benchmark {
 /**

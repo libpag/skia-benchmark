@@ -17,10 +17,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "SolidRectBench.h"
+#include <chrono>
 #include <iomanip>
 #include <random>
 #include <sstream>
-#include <chrono>
 
 namespace benchmark {
 static constexpr size_t MAX_RECT_COUNT = 300000;

@@ -189,7 +189,7 @@ float SkiaWindow::getPixelRatio() const {
 
 void SkiaWindow::createAppHost() {
   appHost = std::make_unique<AppHost>();
-  auto typeface = SkFontMgr::RefDefault()->matchFamilyStyle("Microsoft Yahei",SkFontStyle());
+  auto typeface = SkFontMgr::RefDefault()->matchFamilyStyle("Microsoft Yahei", SkFontStyle());
   appHost->addTypeface("default", typeface);
 }
 
@@ -207,7 +207,7 @@ void SkiaWindow::draw() {
   auto pixelRatio = getPixelRatio();
   auto sizeChanged = appHost->updateScreen(width, height, pixelRatio);
   if (sizeChanged) {
-    windowContext->resize(width,height);
+    windowContext->resize(width, height);
   }
 
   auto surface = windowContext->getBackbufferSurface();
@@ -220,7 +220,7 @@ void SkiaWindow::draw() {
   auto index = (lastDrawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
-  if(const auto dContext = windowContext->directContext()) {
+  if (const auto dContext = windowContext->directContext()) {
     dContext->flushAndSubmit(surface.get(), GrSyncCpu::kNo);
   }
   windowContext->swapBuffers();

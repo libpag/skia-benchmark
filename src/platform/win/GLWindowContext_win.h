@@ -28,6 +28,3 @@ struct DisplayParams;
 std::unique_ptr<WindowContext> MakeGLForWin(HWND, const DisplayParams&);
 
 }  // namespace skiawindow
-
-
-

@@ -15,13 +15,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "platform/win/GLWindowContext_win.h"
+#include <GL/gl.h>
+#include <Windows.h>
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/utils/win/SkWGL.h"
 #include "window_context/GLWindowContext.h"
-#include "platform/win/GLWindowContext_win.h"
-
-#include <Windows.h>
-#include <GL/gl.h>
 
 using skiawindow::DisplayParams;
 using skiawindow::GLWindowContext;
@@ -39,12 +38,12 @@ class GLWindowContext_win final : public GLWindowContext {
   void onDestroyContext() override;
 
  private:
-  HWND              hwnd;
-  HGLRC             hRc;
+  HWND hwnd;
+  HGLRC hRc;
 };
 
 GLWindowContext_win::GLWindowContext_win(HWND wnd, const DisplayParams& params)
-  : GLWindowContext(params), hwnd(wnd), hRc(nullptr) {
+    : GLWindowContext(params), hwnd(wnd), hRc(nullptr) {
   this->initializeContext();
 }
 
@@ -55,24 +54,24 @@ GLWindowContext_win::~GLWindowContext_win() {
 sk_sp<const GrGLInterface> GLWindowContext_win::onInitializeContext() {
   HDC dc = GetDC(hwnd);
   hRc = SkCreateWGLContext(dc, _displayParams.MSAASampleCount, false /* deepColor */,
-                                kGLPreferCompatibilityProfile_SkWGLContextRequest);
+                           kGLPreferCompatibilityProfile_SkWGLContextRequest);
   if (nullptr == hRc) {
-      return nullptr;
+    return nullptr;
   }
 
   // Look to see if RenderDoc is attached. If so, re-create the context with a core profile
   if (wglMakeCurrent(dc, hRc)) {
-      auto interface = GrGLMakeNativeInterface();
-      bool renderDocAttached = interface->hasExtension("GL_EXT_debug_tool");
-      interface.reset(nullptr);
-      if (renderDocAttached) {
-          wglDeleteContext(hRc);
-          hRc = SkCreateWGLContext(dc, _displayParams.MSAASampleCount, false /* deepColor */,
-                                      kGLPreferCoreProfile_SkWGLContextRequest);
-          if (nullptr == hRc) {
-              return nullptr;
-          }
+    auto interface = GrGLMakeNativeInterface();
+    bool renderDocAttached = interface->hasExtension("GL_EXT_debug_tool");
+    interface.reset(nullptr);
+    if (renderDocAttached) {
+      wglDeleteContext(hRc);
+      hRc = SkCreateWGLContext(dc, _displayParams.MSAASampleCount, false /* deepColor */,
+                               kGLPreferCoreProfile_SkWGLContextRequest);
+      if (nullptr == hRc) {
+        return nullptr;
       }
+    }
   }
   SkWGLExtensions extensions;
   if (wglMakeCurrent(dc, hRc)) {
@@ -90,12 +89,7 @@ sk_sp<const GrGLInterface> GLWindowContext_win::onInitializeContext() {
     // Get sample count if the MSAA WGL extension is present
     if (extensions.hasExtension(dc, "WGL_ARB_multisample")) {
       static const int kSampleCountAttr = SK_WGL_SAMPLES;
-      extensions.getPixelFormatAttribiv(dc,
-                                        pixelFormat,
-                                        0,
-                                        1,
-                                        &kSampleCountAttr,
-                                        &_sampleCount);
+      extensions.getPixelFormatAttribiv(dc, pixelFormat, 0, 1, &kSampleCountAttr, &_sampleCount);
       _sampleCount = std::max(_sampleCount, 1);
     } else {
       _sampleCount = 1;
@@ -115,12 +109,10 @@ sk_sp<const GrGLInterface> GLWindowContext_win::onInitializeContext() {
   return GrGLMakeNativeInterface();
 }
 
-
 void GLWindowContext_win::onDestroyContext() {
   wglDeleteContext(hRc);
   hRc = nullptr;
 }
-
 
 void GLWindowContext_win::onSwapBuffers() {
   HDC dc = GetDC((HWND)hwnd);
@@ -133,11 +125,11 @@ void GLWindowContext_win::onSwapBuffers() {
 namespace skiawindow {
 
 std::unique_ptr<WindowContext> MakeGLForWin(HWND wnd, const DisplayParams& params) {
-    std::unique_ptr<WindowContext> ctx(new GLWindowContext_win(wnd, params));
-    if (!ctx->isValid()) {
-        return nullptr;
-    }
-    return ctx;
+  std::unique_ptr<WindowContext> ctx(new GLWindowContext_win(wnd, params));
+  if (!ctx->isValid()) {
+    return nullptr;
+  }
+  return ctx;
 }
 
 }  // namespace skiawindow

@@ -60,7 +60,7 @@ void AppHost::addTypeface(const std::string& name, sk_sp<SkTypeface> typeface) {
     return;
   }
   if (typefaces.count(name) > 0) {
-    std::cout <<"AppHost::addTypeface() typeface with name "<<name<<" aleardy exists!\n";
+    std::cout << "AppHost::addTypeface() typeface with name " << name << " aleardy exists!\n";
     return;
   }
   typefaces[name] = std::move(typeface);
