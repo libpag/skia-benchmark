@@ -18,51 +18,40 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include "AppHost.h"
-#include "include/core/SkCanvas.h"
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#include <Windows.h>
+#include <Windowsx.h>
+#include <memory>
+#include "base/Bench.h"
+#include "window_context/WindowContext.h"
 
 namespace benchmark {
-class Bench {
+
+class SkiaWindow {
  public:
-  /**
-   * Returns the number of drawers.
-   */
-  static int Count();
+  SkiaWindow();
+  virtual ~SkiaWindow();
 
-  /**
-   * Returns the names of all drawers.
-   */
-  static const std::vector<std::string>& Names();
-
-  /**
-   * Returns the drawer with the given index.
-   */
-  static Bench* GetByIndex(int index);
-
-  /**
-   * Returns the drawer with the given name.
-   */
-  static Bench* GetByName(const std::string& name);
-
-  explicit Bench(std::string name);
-
-  virtual ~Bench() = default;
-
-  std::string name() const {
-    return _name;
-  }
-
-  /**
-   * Draws the contents to the given canvas.
-   */
-  void draw(SkCanvas* canvas, const AppHost* host);
-
- protected:
-  virtual void onDraw(SkCanvas* canvas, const AppHost* host) = 0;
+  bool open();
 
  private:
-  std::string _name;
+  HWND windowHandle = nullptr;
+  int lastDrawIndex = 0;
+  std::shared_ptr<AppHost> appHost = nullptr;
+  std::unique_ptr<skiawindow::WindowContext> windowContext = nullptr;
+
+  static WNDCLASS RegisterWindowClass();
+  static LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam) noexcept;
+
+  LRESULT handleMessage(HWND window, UINT message, WPARAM wparam, LPARAM lparam) noexcept;
+
+  void destroy();
+  void centerAndShow() const;
+  float getPixelRatio() const;
+  void createAppHost();
+  void draw();
 };
 }  // namespace benchmark
