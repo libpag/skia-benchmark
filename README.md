@@ -82,7 +82,7 @@ option, for example:
 ./gen_mac -a x64
 ```    
 
-finally, open Xcode and launch the `mac/Skia-Benchmark.xcworkspace`. You are all set!
+finally, open Xcode and launch the `mac/Skia-Benchmark.xcodeproj`. You are all set!
 
 ### Windows
 

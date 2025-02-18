@@ -78,17 +78,13 @@ else ()
 endif ()
 add_dependencies(Benchmark bench-vendor)
 
+list(APPEND BENCH_DEFINES -DSK_GANESH -DSK_GL -DSK_DEFAULT_TYPEFACE_IS_EMPTY
+        -DSK_DISABLE_LEGACY_DEFAULT_TYPEFACE -DSK_ENABLE_PRECOMPILE
+        -DSK_GAMMA_APPLY_TO_A8 -DSKIA_IMPLEMENTATION=1)
 if (WIN32)
-  target_compile_definitions(Benchmark PRIVATE
+  list(APPEND BENCH_DEFINES
           -DWIN32_LEAN_AND_MEAN
           -DNOMINMAX
-          -DSK_GANESH
-          -DSK_GL
-          -DSK_DEFAULT_TYPEFACE_IS_EMPTY
-          -DSK_DISABLE_LEGACY_DEFAULT_TYPEFACE
-          -DSK_ENABLE_PRECOMPILE
-          -DSK_GAMMA_APPLY_TO_A8
-          -DSKIA_IMPLEMENTATION=1
           -DSK_FONTMGR_DIRECTWRITE_AVAILABLE
           -DSK_TYPEFACE_FACTORY_DIRECTWRITE
           $<$<CONFIG:Debug>:GR_TEST_UTILS=1>
@@ -97,21 +93,11 @@ if (WIN32)
           $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
   )
 else ()
-  target_compile_definitions(Benchmark PRIVATE
-          -DSK_GANESH
-          -DSK_GL
-          -DSK_DEFAULT_TYPEFACE_IS_EMPTY
-          -DSK_DISABLE_LEGACY_DEFAULT_TYPEFACE
-          -DSK_ENABLE_PRECOMPILE
-          -DSK_ASSUME_GL=1
-          -DSK_USE_PERFETTO
-          -DSK_ENABLE_API_AVAILABLE
-          -DSK_GAMMA_APPLY_TO_A8
-          -DSKIA_IMPLEMENTATION=1
-  )
+  list(APPEND BENCH_DEFINES -DSK_ASSUME_GL=1 -DSK_USE_PERFETTO -DSK_ENABLE_API_AVAILABLE)
 endif ()
 
 target_include_directories(Benchmark PRIVATE ${BENCH_INCLUDES})
+target_compile_definitions(Benchmark PRIVATE ${BENCH_DEFINES})
 target_compile_options(Benchmark PUBLIC ${BENCH_COMPILE_OPTIONS})
 target_link_libraries(Benchmark PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES} ${BENCHMARK_LIBS})
 
