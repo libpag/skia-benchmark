@@ -31,7 +31,10 @@ list(APPEND BENCH_INCLUDES ${SKIA_DIR})
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND BENCH_INCLUDES src)
-file(GLOB_RECURSE SRC_FILES src/*.cpp)
+file(GLOB_RECURSE SRC_FILES
+        src/base/*.cpp
+        src/benchmark/*.cpp
+        src/window_context/*.cpp)
 
 if (IOS)
   file(GLOB_RECURSE PLATFORM_FILES src/platform/ios/*.mm)
