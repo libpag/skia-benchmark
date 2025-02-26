@@ -46,7 +46,7 @@ class Clock {
    */
   int64_t elapsedTime() const;
 
-private:
+ private:
   int64_t startTime = 0;
 };
-} // namespace benchmark
+}  // namespace benchmark

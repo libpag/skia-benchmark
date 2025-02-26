@@ -79,7 +79,7 @@ class AppHost {
   * Returns the last draw time in microseconds.
   */
   int64_t lastDrawTime() const {
-   return drawTimes.empty() ? 0 : drawTimes.back();
+    return drawTimes.empty() ? 0 : drawTimes.back();
   }
 
   /**
@@ -91,7 +91,7 @@ class AppHost {
    * Returns true if this is the first frame.
    */
   bool isFirstFrame() const {
-   return fpsTimeStamps.empty();
+    return fpsTimeStamps.empty();
   }
 
   /**
@@ -112,7 +112,7 @@ class AppHost {
   void mouseMoved(float mouseX, float mouseY) {
     this->_mouseX = mouseX;
     this->_mouseY = mouseY;
- }
+  }
 
   /**
    * Adds a typeface for the given resouce name

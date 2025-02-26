@@ -34,6 +34,7 @@
 #include "include/gpu/mock/GrMockTypes.h"
 #include "platform/mac/GLWindowContext_mac.h"
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
+#include "tools/Clock.h"
 #include "window_context/DisplayParams.h"
 
 @implementation SkiaWindow {
@@ -110,7 +111,26 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
 }
 
 - (void)handleClick:(NSClickGestureRecognizer*)gestureRecognizer {
+  if (appHost != nullptr) {
+    appHost->resetFrames();
+  }
   drawIndex++;
+}
+
+- (void)mouseMoved:(NSEvent*)event {
+  NSPoint location = [view convertPoint:[event locationInWindow] fromView:nil];
+  location = [view convertPointToBacking:location];
+  if (appHost != nullptr) {
+    auto mouseX = static_cast<float>(location.x);
+    auto mouseY = static_cast<float>(appHost->height() - location.y - 1);
+    appHost->mouseMoved(mouseX, mouseY);
+  }
+}
+
+- (void)mouseExited:(NSEvent*)event {
+  if (appHost != nullptr) {
+    appHost->mouseMoved(-1, -1);
+  }
 }
 
 - (void)updateSize {
@@ -121,15 +141,27 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
     appHost = std::make_unique<benchmark::AppHost>();
     auto typeface = SkFontMgr::RefDefault()->matchFamilyStyle("Helvetica", SkFontStyle());
     appHost->addTypeface("default", typeface);
+  } else {
+    appHost->resetFrames();
   }
   auto contentScale = static_cast<float>(size.height / view.bounds.size.height);
   auto sizeChanged = appHost->updateScreen(width, height, contentScale);
   if (sizeChanged && windowContext != nullptr) {
     windowContext->resize(width, height);
   }
+  for (NSTrackingArea* trackingArea in [view trackingAreas]) {
+    [view removeTrackingArea:trackingArea];
+  }
+  NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
+      initWithRect:[view bounds]
+           options:NSTrackingMouseMoved | NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways
+             owner:self
+          userInfo:nil];
+  [view addTrackingArea:trackingArea];
 }
 
 - (void)redraw {
+  auto currenTime = benchmark::Clock::Now();
   if (appHost->width() <= 0 || appHost->height() <= 0) {
     return;
   }
@@ -157,7 +189,8 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
   if (auto dContext = windowContext->directContext()) {
     dContext->flushAndSubmit(surface.get(), GrSyncCpu::kNo);
   }
-
   windowContext->swapBuffers();
+  auto drawTime = benchmark::Clock::Now() - currenTime;
+  appHost->recordFrame(drawTime);
 }
 @end
