@@ -18,7 +18,7 @@
 
 #pragma once
 #include <include/core/SkTypeface.h>
-#include <memory>
+#include <deque>
 #include <unordered_map>
 
 namespace benchmark {
@@ -57,9 +57,48 @@ class AppHost {
   }
 
   /**
+  * Returns the mouse x position
+  */
+  float mouseX() const {
+    return _mouseX;
+  }
+
+  /**
+   * Returns the mouse y position
+   */
+  float mouseY() const {
+    return _mouseY;
+  }
+
+  /**
+   * Returns the current frames per second.Returns 0 if the FPS is not available yet.
+   */
+  float currentFPS() const;
+
+  /**
+  * Returns the last draw time in microseconds.
+  */
+  int64_t lastDrawTime() const {
+    return drawTimes.empty() ? 0 : drawTimes.back();
+  }
+
+  /**
+   * Returns the average draw time in microseconds.
+   */
+  int64_t averageDrawTime() const;
+
+  /**
+   * Returns true if this is the first frame.
+   */
+  bool isFirstFrame() const {
+    return fpsTimeStamps.empty();
+  }
+
+  /**
    * Returns a typeface with the given name.
    */
   sk_sp<SkTypeface> getTypeFace(const std::string& name) const;
+
   /**
    * Updates the screen size and density. The default values are 1280x720 and 1.0. The width and
    * height are in pixels, and the density is the ratio of physical pixels to logical pixels.
@@ -68,14 +107,36 @@ class AppHost {
   bool updateScreen(int width, int height, float density);
 
   /**
+   * Updates the mouse position.
+   */
+  void mouseMoved(float mouseX, float mouseY) {
+    this->_mouseX = mouseX;
+    this->_mouseY = mouseY;
+  }
+
+  /**
    * Adds a typeface for the given resouce name
    */
   void addTypeface(const std::string& name, sk_sp<SkTypeface> typeface);
+
+  /**
+   * Marks the end of a frame and records the frame time.
+   */
+  void recordFrame(int64_t drawTime);
+
+  /**
+   * Resets the app host to the first frame.
+   */
+  void resetFrames();
 
  private:
   int _width = 1024;
   int _height = 720;
   float _density = 1.0f;
+  float _mouseX = -1.0f;
+  float _mouseY = -1.0f;
+  std::deque<int64_t> fpsTimeStamps = {};
+  std::deque<int64_t> drawTimes = {};
   std::unordered_map<std::string, sk_sp<SkTypeface>> typefaces = {};
 };
 }  // namespace benchmark

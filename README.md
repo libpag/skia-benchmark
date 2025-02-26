@@ -67,7 +67,7 @@ To get started, open the root directory in CLion. Then, go to `File->Settings` a
 `Build, Execution, Deployment->CMake`. Add a new profile with the Release build type. Now you are
 ready to build and run the Benchmark target.
 
-If you prefer using XCode IDE, go to the `mac/` directory, run the following command or double-click
+If you prefer using XCode IDE, go to the root directory, run the following command or double-click
 it:
 
 ```

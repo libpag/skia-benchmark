@@ -23,6 +23,7 @@
 #if WINVER >= 0x0603  // Windows 8.1
 #include <shellscalingapi.h>
 #endif
+#include "tools/Clock.h"
 
 namespace benchmark {
 static constexpr LPCWSTR ClassName = L"SkiaWindow";
@@ -94,10 +95,34 @@ LRESULT SkiaWindow::handleMessage(HWND hwnd, UINT message, WPARAM wparam, LPARAM
       //      EndPaint(windowHandle, &ps);
       break;
     }
+    case WM_MOUSEMOVE: {
+      POINTS pt = MAKEPOINTS(lparam);
+      float mouseX = static_cast<float>(pt.x);
+      float mouseY = static_cast<float>(pt.y);
+      if (appHost) {
+        appHost->mouseMoved(mouseX, mouseY);
+      }
+      // Request mouse leave event notification
+      TRACKMOUSEEVENT tme;
+      tme.cbSize = sizeof(tme);
+      tme.dwFlags = TME_LEAVE;
+      tme.hwndTrack = hwnd;
+      TrackMouseEvent(&tme);
+      break;
+    }
     case WM_LBUTTONDOWN:
       lastDrawIndex++;
+      if (appHost) {
+        appHost->resetFrames();
+      }
       ::InvalidateRect(windowHandle, nullptr, TRUE);
       break;
+    case WM_MOUSELEAVE: {
+      if (appHost) {
+        appHost->mouseMoved(-1, -1);
+      }
+      break;
+    }
     default:
       result = DefWindowProc(windowHandle, message, wparam, lparam);
       break;
@@ -194,6 +219,7 @@ void SkiaWindow::createAppHost() {
 }
 
 void SkiaWindow::draw() {
+  auto currentTime = Clock::Now();
   if (!windowContext) {
     windowContext = skiawindow::MakeGLForWin(windowHandle, skiawindow::DisplayParams());
   }
@@ -204,18 +230,17 @@ void SkiaWindow::draw() {
   GetClientRect(windowHandle, &rect);
   const auto width = static_cast<int>(rect.right - rect.left);
   const auto height = static_cast<int>(rect.bottom - rect.top);
-  auto pixelRatio = getPixelRatio();
+  const auto pixelRatio = getPixelRatio();
   auto sizeChanged = appHost->updateScreen(width, height, pixelRatio);
   if (sizeChanged) {
     windowContext->resize(width, height);
   }
-
   auto surface = windowContext->getBackbufferSurface();
   if (surface == nullptr) {
     return;
   }
   auto canvas = surface->getCanvas();
-  canvas->clear(SK_ColorWHITE);
+  canvas->clear({0.87f, 0.87f, 0.87f, 1.0f});
   auto numBenches = benchmark::Bench::Count();
   auto index = (lastDrawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
@@ -223,6 +248,11 @@ void SkiaWindow::draw() {
   if (const auto dContext = windowContext->directContext()) {
     dContext->flushAndSubmit(surface.get(), GrSyncCpu::kNo);
   }
+  auto presentStartTime = Clock::Now();
+  // Exclude the swapBuffers(present) time from the draw time to avoid blocking caused by vsync.
   windowContext->swapBuffers();
+  auto presentTime = Clock::Now() - presentStartTime;
+  auto drawTime = Clock::Now() - currentTime - presentTime;
+  appHost->recordFrame(drawTime);
 }
 }  // namespace benchmark

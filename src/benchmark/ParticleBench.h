@@ -28,12 +28,13 @@ namespace benchmark {
 
 struct RectData {
   SkRect rect{0, 0, 1, 1};
-  float speed;
+  float speedX;
+  float speedY;
 };
 
-class SolidRectBench : public Bench {
+class ParticleBench : public Bench {
  public:
-  SolidRectBench() : Bench("SolidRectBench") {
+  ParticleBench() : Bench("ParticleBench") {
   }
 
  protected:
@@ -42,30 +43,26 @@ class SolidRectBench : public Bench {
  private:
   void Init(const AppHost* host);
 
-  void InitRects();
-
-  void InitPaints();
+  void AnimateRects(const AppHost* host);
 
   void DrawRects(SkCanvas* canvas) const;
 
-  void DrawFPS(SkCanvas* canvas, const AppHost* host);
-
-  void AnimateRects();
+  void DrawStatus(SkCanvas* canvas, const AppHost* host);
 
  private:
   float width = 0;   //appHost width
   float height = 0;  //appHost height
-  size_t frameCount = 0;
-  size_t curRectCount = 0;
-  std::string fpsInfo;
-  std::vector<RectData> rects;
-  SkPaint paints[3];           // red, green, blue solid paints
-  SkPaint fpsBackgroundpaint;  // red solid paint
-  SkPaint fpsTextPaint;        // white solid paint
-  uint64_t lastMs = 0;
-  std::deque<uint64_t> timeStamps;
-  SkRect fpsBackgroundRect;
-  SkFont fpsFont;
+  float targetFPS = 60.0f;
+  float currentFPS = 0.f;
+  size_t drawCount = 1;
+  bool maxDrawCountReached = false;
+  std::vector<RectData> rects = {};
+  SkRect startRect = SkRect::MakeEmpty();
+  SkPaint paints[3];  // red, green, blue solid paints
+  int64_t lastFlushTime = -1;
+  SkFont fpsFont = {};
+  SkColor4f fpsColor = SkColors::kGreen;
+  std::vector<std::string> status = {};
 };
 
 }  // namespace benchmark
