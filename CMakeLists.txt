@@ -32,6 +32,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND BENCH_INCLUDES src)
 file(GLOB_RECURSE SRC_FILES
+        src/tools/*.cpp
         src/base/*.cpp
         src/benchmark/*.cpp
         src/window_context/*.cpp)

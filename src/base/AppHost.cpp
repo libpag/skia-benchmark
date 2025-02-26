@@ -18,6 +18,7 @@
 
 #include "AppHost.h"
 #include <iostream>
+#include "tools/Clock.h"
 
 namespace benchmark {
 AppHost::AppHost(int width, int height, float density)
@@ -37,7 +38,7 @@ bool AppHost::updateScreen(int width, int height, float density) {
     std::cout << "AppHost::updateScreen() width or height is invalid!\n";
     return false;
   }
-  if (density < 1.0) {
+  if (density < 1.0f) {
     std::cout << "AppHost::updateScreen() density is invalid!\n";
     return false;
   }
@@ -64,6 +65,42 @@ void AppHost::addTypeface(const std::string& name, sk_sp<SkTypeface> typeface) {
     return;
   }
   typefaces[name] = std::move(typeface);
+}
+
+float AppHost::currentFPS() const {
+  if (fpsTimeStamps.size() < 60) {
+    return 0.0f;
+  }
+  auto duration = fpsTimeStamps.back() - fpsTimeStamps.front();
+  return static_cast<float>((fpsTimeStamps.size() - 1) * 1000000) / static_cast<float>(duration);
+}
+
+int64_t AppHost::averageDrawTime() const {
+  if (drawTimes.empty()) {
+    return 0;
+  }
+  int64_t total = 0;
+  for (auto& drawTime : drawTimes) {
+    total += drawTime;
+  }
+  return total / static_cast<int64_t>(drawTimes.size());
+}
+
+void AppHost::recordFrame(int64_t drawTime) {
+  auto currentTime = Clock::Now();
+  fpsTimeStamps.push_back(currentTime);
+  while (fpsTimeStamps.size() > 60) {
+    fpsTimeStamps.pop_front();
+  }
+  drawTimes.push_back(drawTime);
+  while (drawTimes.size() > 60) {
+    drawTimes.pop_front();
+  }
+}
+
+void AppHost::resetFrames() {
+  fpsTimeStamps.clear();
+  drawTimes.clear();
 }
 
 }  // namespace benchmark
