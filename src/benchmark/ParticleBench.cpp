@@ -41,7 +41,7 @@ void ParticleBench::onDraw(SkCanvas* canvas, const AppHost* host) {
 void ParticleBench::Init(const AppHost* host) {
   auto hostWidth = static_cast<float>(host->width());
   auto hostHeight = static_cast<float>(host->height());
-  if (width == hostWidth && height == hostHeight) {
+  if (width == hostWidth && height == hostHeight && !host->isFirstFrame()) {
     return;
   }
   width = hostWidth;
