@@ -161,6 +161,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
            options:NSTrackingMouseMoved | NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways
              owner:self
           userInfo:nil];
+  [trackingArea autorelease];
   [view addTrackingArea:trackingArea];
 }
 
