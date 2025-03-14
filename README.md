@@ -7,14 +7,12 @@ graphics library on different platforms.
 Here are the minimum tools needed to build skia-benchmark on different platforms:
 
 - Xcode 11.0+
-- GCC 9.0+
 - Visual Studio 2019+
 - NodeJS 14.14.0+
 - Ninja 1.9.0+
 - CMake 3.13.0+
-- QT 5.13.0+
-- NDK 19.2+ (**19.2.5345600 recommended**)
 - Emscripten 3.1.58+
+- Python3 3.8+
 
 
 Please note the following additional notices:
@@ -85,6 +83,9 @@ option, for example:
 finally, open Xcode and launch the `mac/Skia-Benchmark.xcodeproj`. You are all set!
 
 ### Windows
+
+**Note:** If you're using a dedicated graphics card like NVIDIA or AMD, make sure to update your
+graphics driver to the latest version to ensure the test results are accurate.
 
 To get started, open the root directory in CLion. Then, go to `File->Settings` and navigate to
 `Build, Execution, Deployment->ToolChains`. Set the toolchain to `Visual Studio` with `amd64`
