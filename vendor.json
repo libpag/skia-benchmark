@@ -10,8 +10,8 @@
           "file": "scripts/skia/build_mac.sh"
         },
         "win": {
-          "executor": "bash",
-          "file": "scripts/skia/build_win.sh"
+          "executor": "cmd.exe",
+          "file": "scripts/skia/build_win.bat"
         }
       }
     }
