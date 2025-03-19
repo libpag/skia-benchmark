@@ -18,8 +18,8 @@
 #include "platform/win/GLWindowContext_win.h"
 #include <GL/gl.h>
 #include <Windows.h>
-#include "include/gpu/gl/GrGLInterface.h"
-#include "src/utils/win/SkWGL.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "tools/gpu/gl/win/SkWGL.h"
 #include "window_context/GLWindowContext.h"
 
 using skiawindow::DisplayParams;
