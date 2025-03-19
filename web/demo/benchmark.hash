@@ -1,0 +1,6 @@
+src/
+CMakeLists.txt
+../../src/
+../../vendor.json
+../../DEPS
+../../third_party/out/skia/web/
