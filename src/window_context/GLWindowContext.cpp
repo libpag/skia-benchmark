@@ -7,8 +7,8 @@
 
 #include "GLWindowContext.h"
 #include "include/core/SkSurface.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
@@ -20,7 +20,7 @@ namespace skiawindow {
 
 GLWindowContext::GLWindowContext(const DisplayParams& params)
     : WindowContext(params), backendContext(nullptr), surface(nullptr) {
-  _displayParams.MSAASampleCount = GrNextPow2(_displayParams.MSAASampleCount);
+  _displayParams.MSAASampleCount = SkNextPow2(_displayParams.MSAASampleCount);
 }
 
 void GLWindowContext::initializeContext() {

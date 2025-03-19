@@ -12,6 +12,10 @@
         "win": {
           "executor": "cmd.exe",
           "file": "scripts/skia/build_win.bat"
+        },
+        "web": {
+          "executor": "bash",
+          "file": "scripts/skia/build_web.sh"
         }
       }
     }

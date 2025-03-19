@@ -24,14 +24,15 @@
 #include "base/Bench.h"
 #include "include/core/SkFontMgr.h"
 #include "include/core/SkSurface.h"
-#include "include/gpu/GrDirectContext.h"
-#include "include/gpu/GrbackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/GrbackendSurface.h"
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
-#include "include/gpu/gl/GrGLInterface.h"
-#include "include/gpu/gl/GrGLTypes.h"
-#include "include/gpu/mock/GrMockTypes.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/gpu/ganesh/gl/GrGLTypes.h"
+#include "include/gpu/ganesh/mock/GrMockTypes.h"
+#include "include/ports/SkFontMgr_mac_ct.h"
 #include "platform/mac/GLWindowContext_mac.h"
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
 #include "tools/Clock.h"
@@ -143,7 +144,8 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
   auto height = static_cast<int>(round(size.height));
   if (appHost == nullptr) {
     appHost = std::make_unique<benchmark::AppHost>();
-    auto typeface = SkFontMgr::RefDefault()->matchFamilyStyle("Helvetica", SkFontStyle());
+    sk_sp<SkFontMgr> fontMgr = SkFontMgr_New_CoreText(nullptr);
+    auto typeface = fontMgr->matchFamilyStyle("Helvetica", SkFontStyle());
     appHost->addTypeface("default", typeface);
   } else {
     appHost->resetFrames();

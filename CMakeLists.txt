@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(Skia-Benchmark)
+# Disable error for the web platform.
+SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS true)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 include(./third_party/vendor_tools/vendor.cmake)
@@ -15,7 +17,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
           -Wno-nested-anon-types -Wno-gnu-anonymous-struct -Wno-unused-parameter
           -Wno-gnu-conditional-omitted-operand -Wno-shorten-64-to-32
           -Wno-implicit-int-conversion -Wno-sign-conversion -Wno-deprecated-declarations
-          -Wno-nonportable-include-path)
+          -Wno-nonportable-include-path -Wno-implicit-int-float-conversion)
 endif ()
 
 if (MSVC)
@@ -101,5 +103,3 @@ target_include_directories(Benchmark PRIVATE ${BENCH_INCLUDES})
 target_compile_definitions(Benchmark PRIVATE ${BENCH_DEFINES})
 target_compile_options(Benchmark PUBLIC ${BENCH_COMPILE_OPTIONS})
 target_link_libraries(Benchmark PUBLIC ${BENCH_VENDOR_STATIC_LIBRARIES} ${BENCHMARK_LIBS})
-
-

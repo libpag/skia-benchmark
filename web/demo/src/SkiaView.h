@@ -16,26 +16,38 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "Clock.h"
+#pragma once
 
+#include <emscripten/bind.h>
+#include <emscripten/html5.h>
+#include "base/AppHost.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+
+using namespace emscripten;
 namespace benchmark {
-int64_t Clock::Now() {
-  static const auto START_TIME = std::chrono::steady_clock::now();
-  auto now = std::chrono::steady_clock::now();
-  auto us = std::chrono::duration_cast<std::chrono::microseconds>(now - START_TIME);
-  return static_cast<int64_t>(us.count());
-}
+class SkiaView {
+ public:
+  SkiaView(const std::string& canvasID);
 
-Clock::Clock() {
-  startTime = Now();
-}
+  ~SkiaView();
 
-void Clock::reset() {
-  startTime = Now();
-}
+  void setImagePath(const std::string& imagePath);
 
-int64_t Clock::elapsedTime() const {
-  return Now() - startTime;
-}
+  void registerFonts(const val& fontVal, const val& emojiFontVal);
 
-}  //namespace benchmark
+  void updateSize(float devicePixelRatio);
+
+  void startDraw();
+
+  void draw();
+
+  int drawIndex = 0;
+  std::shared_ptr<benchmark::AppHost> appHost = nullptr;
+
+ private:
+  std::string canvasID = "";
+  sk_sp<GrDirectContext> skContext = nullptr;
+  sk_sp<SkSurface> skSurface = nullptr;
+
+};
+} // namespace benchmark

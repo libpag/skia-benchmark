@@ -16,26 +16,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "Clock.h"
-
-namespace benchmark {
-int64_t Clock::Now() {
-  static const auto START_TIME = std::chrono::steady_clock::now();
-  auto now = std::chrono::steady_clock::now();
-  auto us = std::chrono::duration_cast<std::chrono::microseconds>(now - START_TIME);
-  return static_cast<int64_t>(us.count());
+export class SkiaView {
+    public updateSize: (devicePixelRatio: number) => void;
+    public startDraw: () => void;
 }
 
-Clock::Clock() {
-  startTime = Now();
+export function updateSize(skiaView: SkiaView) {
+    if (!skiaView) {
+        return;
+    }
+    let canvas = document.getElementById('benchmark') as HTMLCanvasElement;
+    let container = document.getElementById('container') as HTMLDivElement;
+    let screenRect = container.getBoundingClientRect();
+    let scaleFactor = window.devicePixelRatio;
+    canvas.width = screenRect.width * scaleFactor;
+    canvas.height = screenRect.height * scaleFactor;
+    canvas.style.width = screenRect.width + "px";
+    canvas.style.height = screenRect.height + "px";
+    skiaView.updateSize(scaleFactor);
 }
 
-void Clock::reset() {
-  startTime = Now();
+export function startDraw(skiaView: SkiaView) {
+    if (!skiaView) {
+        return;
+    }
+    skiaView.startDraw();
 }
-
-int64_t Clock::elapsedTime() const {
-  return Now() - startTime;
-}
-
-}  //namespace benchmark

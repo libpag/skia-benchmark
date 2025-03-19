@@ -36,7 +36,6 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-
 void ForceHighPerformanceCore() {
   // Get the current process handle
   HANDLE hProcess = GetCurrentProcess();

@@ -16,7 +16,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "platform/mac/GLWindowContext_mac.h"
-#include "include/gpu/gl/GrGLInterface.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "window_context/GLWindowContext.h"
 
 #include <Cocoa/Cocoa.h>
