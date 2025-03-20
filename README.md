@@ -163,4 +163,3 @@ npm run serser
 This will open [http://localhost:8071/index.html](http://localhost:8071/index.html)
 in your default browser. You can also open it manually to view the demo.
 
-According to our test results, Skia's multithreaded performance on the web platform is weaker than single-threaded performance.
