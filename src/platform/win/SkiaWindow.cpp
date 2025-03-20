@@ -20,6 +20,7 @@
 #include <include/core/SkFontMgr.h>
 #include "GLWindowContext_win.h"
 #include "include/core/SkSurface.h"
+#include "include/ports/SkTypeface_win.h"
 #if WINVER >= 0x0603  // Windows 8.1
 #include <shellscalingapi.h>
 #endif
@@ -214,8 +215,11 @@ float SkiaWindow::getPixelRatio() const {
 
 void SkiaWindow::createAppHost() {
   appHost = std::make_unique<AppHost>();
-  auto typeface = SkFontMgr::RefDefault()->matchFamilyStyle("Microsoft Yahei", SkFontStyle());
-  appHost->addTypeface("default", typeface);
+  auto fontMgr = SkFontMgr_New_DirectWrite();
+  if (fontMgr) {
+    auto typeface = fontMgr->matchFamilyStyle("Microsoft Yahei", SkFontStyle());
+    appHost->addTypeface("default", typeface);
+  }
 }
 
 void SkiaWindow::draw() {

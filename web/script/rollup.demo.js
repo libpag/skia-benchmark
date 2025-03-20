@@ -1,4 +1,9 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////
+import esbuild from 'rollup-plugin-esbuild';
+import resolve from '@rollup/plugin-node-resolve';
+import commonJs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+
+const banner = `/////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //  Tencent is pleased to support the open source community by making skia-benchmark available.
 //
@@ -15,27 +20,27 @@
 //  and limitations under the license.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
+`;
 
-#include "Clock.h"
+const arch = process.env.ARCH;
+var fileName = (arch === 'wasm-mt'? 'index': 'index-st');
 
-namespace benchmark {
-int64_t Clock::Now() {
-  static const auto START_TIME = std::chrono::steady_clock::now();
-  auto now = std::chrono::steady_clock::now();
-  auto us = std::chrono::duration_cast<std::chrono::microseconds>(now - START_TIME);
-  return static_cast<int64_t>(us.count());
-}
+const plugins = [
+    esbuild({tsconfig: "tsconfig.json", minify: false}),
+    json(),
+    resolve(),
+    commonJs(),
+];
 
-Clock::Clock() {
-  startTime = Now();
-}
-
-void Clock::reset() {
-  startTime = Now();
-}
-
-int64_t Clock::elapsedTime() const {
-  return Now() - startTime;
-}
-
-}  //namespace benchmark
+export default [
+    {
+        input: `demo/${fileName}.ts`,
+        output: {
+            banner,
+            file: `demo/${fileName}.js`,
+            format: 'esm',
+            sourcemap: true
+        },
+        plugins: plugins,
+    }
+];

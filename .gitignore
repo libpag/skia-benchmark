@@ -57,7 +57,6 @@ xcshareddata
 .temp
 Pods/
 Podfile.lock
-Adobe After Effects Auto-Save/
 .cxx
 /.sync_deps.cmake
 /build.yml
@@ -68,3 +67,8 @@ QTCMAKE.cfg
 /ios
 /mac
 /win
+*.md5
+*.map
+*.wasm
+web/demo/*.js
+web/demo/*/*.js

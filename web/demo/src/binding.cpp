@@ -16,26 +16,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "Clock.h"
+#include <emscripten/bind.h>
 
-namespace benchmark {
-int64_t Clock::Now() {
-  static const auto START_TIME = std::chrono::steady_clock::now();
-  auto now = std::chrono::steady_clock::now();
-  auto us = std::chrono::duration_cast<std::chrono::microseconds>(now - START_TIME);
-  return static_cast<int64_t>(us.count());
+#include "SkiaView.h"
+
+using namespace benchmark;
+using namespace emscripten;
+
+EMSCRIPTEN_BINDINGS(SkiaDemo) {
+
+  class_<SkiaView>("SkiaView")
+      .smart_ptr<std::shared_ptr<SkiaView>>("SkiaView")
+      .class_function("MakeFrom", optional_override([](const std::string& canvasID) {
+                        if (canvasID.empty()) {
+                          return std::shared_ptr<SkiaView>(nullptr);
+                        }
+                        return std::make_shared<SkiaView>(canvasID);
+                      }))
+      .function("setImagePath", &SkiaView::setImagePath)
+      .function("updateSize", &SkiaView::updateSize)
+      .function("startDraw", &SkiaView::startDraw)
+      .function("registerFonts", &SkiaView::registerFonts);
 }
-
-Clock::Clock() {
-  startTime = Now();
-}
-
-void Clock::reset() {
-  startTime = Now();
-}
-
-int64_t Clock::elapsedTime() const {
-  return Now() - startTime;
-}
-
-}  //namespace benchmark

@@ -16,26 +16,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "Clock.h"
+#pragma once
 
-namespace benchmark {
-int64_t Clock::Now() {
-  static const auto START_TIME = std::chrono::steady_clock::now();
-  auto now = std::chrono::steady_clock::now();
-  auto us = std::chrono::duration_cast<std::chrono::microseconds>(now - START_TIME);
-  return static_cast<int64_t>(us.count());
-}
+#include <windows.h>
 
-Clock::Clock() {
-  startTime = Now();
-}
+namespace skiawindow {
+HGLRC CreateWGLContext(HDC deviceContext, int msaaSampleCount, HGLRC sharedContext,
+                       bool glCoreProfile);
 
-void Clock::reset() {
-  startTime = Now();
-}
-
-int64_t Clock::elapsedTime() const {
-  return Now() - startTime;
-}
-
-}  //namespace benchmark
+}  // namespace skiawindow

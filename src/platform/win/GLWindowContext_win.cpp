@@ -18,8 +18,9 @@
 #include "platform/win/GLWindowContext_win.h"
 #include <GL/gl.h>
 #include <Windows.h>
-#include "include/gpu/gl/GrGLInterface.h"
-#include "src/utils/win/SkWGL.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "platform/win/WGLInterface.h"
+#include "platform/win/WGLUtil.h"
 #include "window_context/GLWindowContext.h"
 
 using skiawindow::DisplayParams;
@@ -53,27 +54,23 @@ GLWindowContext_win::~GLWindowContext_win() {
 
 sk_sp<const GrGLInterface> GLWindowContext_win::onInitializeContext() {
   HDC dc = GetDC(hwnd);
-  hRc = SkCreateWGLContext(dc, _displayParams.MSAASampleCount, false /* deepColor */,
-                           kGLPreferCompatibilityProfile_SkWGLContextRequest);
+  hRc = skiawindow::CreateWGLContext(dc, _displayParams.MSAASampleCount, nullptr, false);
   if (nullptr == hRc) {
     return nullptr;
   }
 
+  auto wglInterface = skiawindow::WGLInterface::Get();
   // Look to see if RenderDoc is attached. If so, re-create the context with a core profile
   if (wglMakeCurrent(dc, hRc)) {
-    auto interface = GrGLMakeNativeInterface();
-    bool renderDocAttached = interface->hasExtension("GL_EXT_debug_tool");
-    interface.reset(nullptr);
-    if (renderDocAttached) {
+    if (wglInterface->debugToolActive) {
       wglDeleteContext(hRc);
-      hRc = SkCreateWGLContext(dc, _displayParams.MSAASampleCount, false /* deepColor */,
-                               kGLPreferCoreProfile_SkWGLContextRequest);
+      hRc = skiawindow::CreateWGLContext(dc, _displayParams.MSAASampleCount, nullptr, true);
       if (nullptr == hRc) {
         return nullptr;
       }
     }
   }
-  SkWGLExtensions extensions;
+
   if (wglMakeCurrent(dc, hRc)) {
     glClearStencil(0);
     glClearColor(0, 0, 0, 0);
@@ -87,9 +84,10 @@ sk_sp<const GrGLInterface> GLWindowContext_win::onInitializeContext() {
     _stencilBits = pfd.cStencilBits;
 
     // Get sample count if the MSAA WGL extension is present
-    if (extensions.hasExtension(dc, "WGL_ARB_multisample")) {
-      static const int kSampleCountAttr = SK_WGL_SAMPLES;
-      extensions.getPixelFormatAttribiv(dc, pixelFormat, 0, 1, &kSampleCountAttr, &_sampleCount);
+    if (wglInterface->multiSampleSupport) {
+      static const int kSampleCountAttr = WGL_SAMPLES;
+      wglInterface->wglGetPixelFormatAttribiv(dc, pixelFormat, 0, 1, &kSampleCountAttr,
+                                              &_sampleCount);
       _sampleCount = std::max(_sampleCount, 1);
     } else {
       _sampleCount = 1;
@@ -102,8 +100,8 @@ sk_sp<const GrGLInterface> GLWindowContext_win::onInitializeContext() {
     glViewport(0, 0, _width, _height);
   }
 
-  if (extensions.hasExtension(dc, "WGL_EXT_swap_control")) {
-    extensions.swapInterval(_displayParams.disableVsync ? 0 : 1);
+  if (wglInterface->swapIntervalSupport) {
+    wglInterface->wglSwapInterval(_displayParams.disableVsync ? 0 : 1);
   }
 
   return GrGLMakeNativeInterface();

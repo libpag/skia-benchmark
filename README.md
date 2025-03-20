@@ -110,3 +110,56 @@ cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_CONFIGURATION_TYPES="Release" -B
 
 Finally, open the `Skia-Benchmark.sln` file in the `win/Debug-x64/` or `win/Release-x64/` directory, and set
 the `Benchmark` project as the startup project. You are all set!
+
+### Web
+To get started, go to the `web/` directory and run the following command to install the necessary
+node modules:
+
+```
+npm install
+```
+
+Then, run the following command to build the project:
+
+```
+npm run build:st
+```
+
+Finally, run the following command to start the development server:
+
+```
+npm run server:st
+```
+This will open [http://localhost:8071/index-st.html](http://localhost:8071/index-st.html)
+in your default browser. You can also open it manually to view the demo.
+
+The above commands build and run a single-threaded version.
+
+To build a multithreaded version, you need to upgrade the Emscripten version in Skia to 3.1.73 or later. The specific changes are as follows:
+
+In the skia directory, modify the DEPS file, change：
+```
+https://skia.googlesource.com/external/github.com/emscripten-core/emsdk.git@a896e3d066448b3530dbcaa48869fafefd738f57
+```
+to:
+```
+https://skia.googlesource.com/external/github.com/emscripten-core/emsdk.git@6abe5123c34a7751a2d5b679e856b2591ba04145
+```
+In the bin/activate-emsdk file, change:
+```
+EMSDK_VERSION = '3.1.44'
+```
+to:
+```
+EMSDK_VERSION = '3.1.73'
+```
+Then, just remove the suffix ":st" to each command. For example:
+
+```
+npm run build
+
+npm run serser
+``` 
+This will open [http://localhost:8071/index.html](http://localhost:8071/index.html)
+in your default browser. You can also open it manually to view the demo.
+
