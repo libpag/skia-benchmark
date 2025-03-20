@@ -215,7 +215,7 @@ float SkiaWindow::getPixelRatio() const {
 
 void SkiaWindow::createAppHost() {
   appHost = std::make_unique<AppHost>();
-  auto fontMgr = SkFontMgr_New_GDI();
+  auto fontMgr = SkFontMgr_New_DirectWrite();
   if (fontMgr) {
     auto typeface = fontMgr->matchFamilyStyle("Microsoft Yahei", SkFontStyle());
     appHost->addTypeface("default", typeface);
