@@ -5,7 +5,7 @@ import json from '@rollup/plugin-json';
 
 const banner = `/////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//  Tencent is pleased to support the open source community by making tgfx available.
+//  Tencent is pleased to support the open source community by making skia-benchmark available.
 //
 //  Copyright (C) 2025 THL A29 Limited, a Tencent company. All rights reserved.
 //
