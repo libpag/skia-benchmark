@@ -65,6 +65,9 @@ class WGLInterface {
   bool multiSampleSupport = false;
   bool debugToolActive = false;
 
+  int glMajorVersion = 1;
+  int glMinorVersion = 1;
+
   GetExtensionsStringProc wglGetExtensionsString = nullptr;
   ChoosePixelFormatProc wglChoosePixelFormat = nullptr;
   CreatePbufferProc wglCreatePbuffer = nullptr;

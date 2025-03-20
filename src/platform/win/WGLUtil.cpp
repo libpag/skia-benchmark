@@ -159,22 +159,18 @@ static HGLRC CreateGLContext(HDC deviceContext, HGLRC sharedContext, bool glCore
   HGLRC glContext = nullptr;
   auto wglInterface = WGLInterface::Get();
   if (glCoreProfile && wglInterface->createContextAttribsSupport) {
-    static const int kCoreGLVersions[] = {
-        4, 3, 4, 2, 4, 1, 4, 0, 3, 3, 3, 2,
+    const int coreProfileAttribs[] = {
+        WGL_CONTEXT_MAJOR_VERSION,
+        wglInterface->glMajorVersion,
+        WGL_CONTEXT_MINOR_VERSION,
+        wglInterface->glMinorVersion,
+        WGL_CONTEXT_PROFILE_MASK,
+        WGL_CONTEXT_CORE_PROFILE_BIT,
+        0,
     };
-    int coreProfileAttribs[] = {
-        WGL_CONTEXT_MAJOR_VERSION,    -1, WGL_CONTEXT_MINOR_VERSION, -1, WGL_CONTEXT_PROFILE_MASK,
-        WGL_CONTEXT_CORE_PROFILE_BIT, 0,
-    };
-    for (size_t v = 0; v < std::size(kCoreGLVersions) / 2; ++v) {
-      coreProfileAttribs[1] = kCoreGLVersions[2 * v];
-      coreProfileAttribs[3] = kCoreGLVersions[2 * v + 1];
-      glContext =
-          wglInterface->wglCreateContextAttribs(deviceContext, sharedContext, coreProfileAttribs);
-      if (glContext) {
-        break;
-      }
-    }
+
+    glContext =
+        wglInterface->wglCreateContextAttribs(deviceContext, sharedContext, coreProfileAttribs);
   }
 
   if (glContext == nullptr) {

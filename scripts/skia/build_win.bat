@@ -37,7 +37,6 @@ goto :eof
                 skia_use_system_libwebp=false ^
                 skia_use_system_expat=false ^
                 skia_use_system_zlib=false ^
-                skia_enable_fontmgr_win_gdi=true ^
                 extra_cflags=[\"/MD\"]
   )
 

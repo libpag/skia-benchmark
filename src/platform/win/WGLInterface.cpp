@@ -62,6 +62,19 @@ static void DestroyTempWindow(HWND nativeWindow) {
   UnregisterClass(TEMP_CLASS, instance);
 }
 
+static bool GetGLVersion(int& majorVersion, int& minorVersion) {
+  const char* versionString = (const char*)glGetString(GL_VERSION);
+  if (versionString == nullptr) {
+    return false;
+  }
+  int n = sscanf_s(versionString, "%d.%d", &majorVersion, &minorVersion);
+  if (2 == n) {
+    return true;
+  }
+  n = sscanf_s(versionString, "OpenGL ES GLSL ES %d.%d", &majorVersion, &minorVersion);
+  return 2 == n;
+}
+
 void InitializeWGLExtensions(HDC deviceContext, WGLInterface& wglInterface) {
   if (deviceContext == nullptr) {
     std::cout << "InitializeWGLExtensions() deviceContext is nullptr\n";
@@ -73,9 +86,10 @@ void InitializeWGLExtensions(HDC deviceContext, WGLInterface& wglInterface) {
   }
   const char* extensionString = wglInterface.wglGetExtensionsString(deviceContext);
   if (extensionString == nullptr) {
-    std::cout << "InitializeWGLExtensions() extentionString is nullptr\n";
+    std::cout << "InitializeWGLExtensions() extensionString is nullptr\n";
     return;
   }
+
   std::stringstream extensionStream;
   std::string element;
   extensionStream << extensionString;
@@ -93,6 +107,8 @@ void InitializeWGLExtensions(HDC deviceContext, WGLInterface& wglInterface) {
   wglInterface.multiSampleSupport =
       extensionList.find("WGL_ARB_multisample") != extensionList.end();
   wglInterface.debugToolActive = extensionList.find("WGL_ARB_debug_tool") != extensionList.end();
+
+  GetGLVersion(wglInterface.glMajorVersion, wglInterface.glMinorVersion);
 }
 
 WGLInterface InitializeWGL() {
