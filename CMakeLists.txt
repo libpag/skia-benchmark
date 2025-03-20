@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 project(Skia-Benchmark)
-# Disable error for the web platform.
-SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS true)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 include(./third_party/vendor_tools/vendor.cmake)
