@@ -57,6 +57,7 @@ elseif (WIN32)
   list(APPEND SRC_FILES ${PLATFORM_FILES})
   find_package(OpenGL REQUIRED)
   list(APPEND BENCHMARK_LIBS ${OPENGL_LIBRARIES})
+  list(APPEND BENCHMARK_LIBS usp10)
 
   if (${CMAKE_SYSTEM_VERSION} VERSION_GREATER_EQUAL 6.3) # Windows 8.1 or later
     add_definitions(-D_WIN32_WINNT=0x0603)
