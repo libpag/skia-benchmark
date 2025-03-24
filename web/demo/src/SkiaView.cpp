@@ -34,6 +34,9 @@
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
 #include "src/ports/SkTypeface_FreeType.h"
 #include "tools/Clock.h"
+#include <emscripten/val.h>
+
+static constexpr int64_t FLUSH_INTERVAL = 300000;
 
 namespace benchmark {
 sk_sp<SkData> GetDataFromEmscripten(const val& emscriptenData) {
@@ -63,9 +66,18 @@ EM_BOOL RequestFrameCallback(double, void* userData) {
   return EM_TRUE;
 }
 
-EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent*, void* userData) {
+EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent* e, void* userData) {
   auto baseView = static_cast<SkiaView*>(userData);
   if (baseView) {
+    double devicePixelRatio = emscripten_get_device_pixel_ratio();
+    double sidebarWidth = EM_ASM_DOUBLE({return document.getElementById('sidebar').clientWidth;}, "");
+    // Adjust click coordinates by subtracting the sidebar width
+    // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
+    // ensure the coordinates are correct relative to the canvas.
+    float x = static_cast<float>(devicePixelRatio) * (
+                  static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
+    float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
+    baseView->appHost->mouseMoved(x, y);
     baseView->appHost->resetFrames();
     baseView->drawIndex++;
   }
@@ -76,8 +88,14 @@ EM_BOOL MouseMoveCallBack(int, const EmscriptenMouseEvent* e, void* userData) {
   auto appHost = static_cast<benchmark::AppHost*>(userData);
   if (appHost) {
     double devicePixelRatio = emscripten_get_device_pixel_ratio();
-    appHost->mouseMoved(static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientX),
-                        static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY));
+    double sidebarWidth = EM_ASM_DOUBLE({return document.getElementById('sidebar').clientWidth;}, "");
+    // Adjust click coordinates by subtracting the sidebar width
+    // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
+    // ensure the coordinates are correct relative to the canvas.
+    float x = static_cast<float>(devicePixelRatio) * (
+                  static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
+    float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
+    appHost->mouseMoved(x, y);
   }
   return EM_TRUE;
 }
@@ -92,6 +110,7 @@ EM_BOOL MouseLeaveCallBack(int, const EmscriptenMouseEvent*, void* userData) {
 
 SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
   appHost = std::make_shared<benchmark::AppHost>(1024, 720);
+  appHost->setWebFlag(true);
   drawIndex = 0;
   emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
   emscripten_set_mousemove_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseMoveCallBack);
@@ -178,10 +197,60 @@ void SkiaView::draw() {
   auto index = (drawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
+  updatePerfInfo(appHost->getPerfData());
   skContext->flushAndSubmit(skSurface.get(), static_cast<GrSyncCpu>(true));
   auto drawTime = benchmark::Clock::Now() - currentTime;
   appHost->recordFrame(drawTime);
 }
+
+void SkiaView::restartDraw() const {
+  if (appHost) {
+    appHost->resetFrames();
+  }
+}
+
+void SkiaView::updatePerfInfo(const PerfData& data) const {
+  static int64_t lastFlushTime = -1;
+  const auto currentTime = Clock::Now();
+  if (lastFlushTime == -1) {
+    lastFlushTime = currentTime;
+  }
+  if (const auto flushInterval = currentTime - lastFlushTime; flushInterval > FLUSH_INTERVAL) {
+    auto window = emscripten::val::global("window");
+    window.call<void>("updatePerfInfo", data.fps, data.drawTime, data.drawCount,appHost->getMaxDrawCountReached());
+    lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
+  }
+}
+
+void SkiaView::updateDrawParam(int type, const float value) const {
+  auto dataType = static_cast<DataType>(type);
+  switch (dataType) {
+    case DataType::startCount:
+      appHost->setStartDrawCount(static_cast<size_t>(value));
+      break;
+    case DataType::stepCount:
+      appHost->setStepCount(static_cast<size_t>(value));
+      break;
+    case DataType::maxDrawCount:
+      appHost->setMaxDrawCount(static_cast<size_t>(value));
+      break;
+    case DataType::minFPS:
+      appHost->setMinFPS(value);
+      break;
+    default:
+      break;
+  }
+  appHost->setUpdateDrawParamFlag(true);
+  appHost->resetFrames();
+}
+
+void SkiaView::updateGraphicType(int type) const {
+  const auto graphicType = static_cast<GraphicType>(type);
+  appHost->setGraphicType(graphicType);
+  appHost->resetFrames();
+}
+
+
 }
 
 int main() {

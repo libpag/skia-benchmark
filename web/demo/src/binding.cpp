@@ -36,5 +36,8 @@ EMSCRIPTEN_BINDINGS(SkiaDemo) {
       .function("setImagePath", &SkiaView::setImagePath)
       .function("updateSize", &SkiaView::updateSize)
       .function("startDraw", &SkiaView::startDraw)
-      .function("registerFonts", &SkiaView::registerFonts);
+      .function("registerFonts", &SkiaView::registerFonts)
+      .function("restartDraw", &SkiaView::restartDraw)
+      .function("updateDrawParam", &SkiaView::updateDrawParam)
+      .function("updateGraphicType", &SkiaView::updateGraphicType);
 }
