@@ -26,11 +26,11 @@
 using namespace emscripten;
 namespace benchmark {
 
-enum DataType {
- startCount=0,
- stepCount=1,
- maxDrawCount=2,
- minFPS=3,
+enum class DataType {
+  startCount = 0,
+  stepCount = 1,
+  maxDrawCount = 2,
+  minFPS = 3,
 };
 
 class SkiaView {
@@ -51,11 +51,11 @@ class SkiaView {
 
   void restartDraw() const;
 
- void updatePerfInfo(const PerfData& data) const;
+  void updatePerfInfo(const PerfData& data) const;
 
- void updateDrawParam(int type,float value) const;
+  void updateDrawParam(int type, float value) const;
 
- void updateGraphicType(int type) const;
+  void updateGraphicType(int type) const;
 
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;
@@ -64,6 +64,5 @@ class SkiaView {
   std::string canvasID = "";
   sk_sp<GrDirectContext> skContext = nullptr;
   sk_sp<SkSurface> skSurface = nullptr;
-
 };
-} // namespace benchmark
+}  // namespace benchmark

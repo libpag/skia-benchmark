@@ -21,12 +21,12 @@
 #include <iomanip>
 #include <random>
 #include <sstream>
-#include "tools/Clock.h"
 #include "include/core/SkPath.h"
+#include "tools/Clock.h"
 
 namespace benchmark {
-static  size_t MAX_RECT_COUNT = 1000000;
-static  size_t INCREASE_STEP = 600;
+static size_t MAX_RECT_COUNT = 1000000;
+static size_t INCREASE_STEP = 600;
 static constexpr int64_t FLUSH_INTERVAL = 300000;
 static constexpr float FPS_BACKGROUND_HEIGHT = 50.f;
 static constexpr float STATUS_WIDTH = 250.f;
@@ -38,7 +38,7 @@ void ParticleBench::onDraw(SkCanvas* canvas, const AppHost* host) {
   AnimateRects(host);
   if (!host->isWeb()) {
     DrawRects(canvas);
-  }else {
+  } else {
     DrawGraphics(canvas, host);
   }
   DrawStatus(canvas, host);
@@ -46,8 +46,8 @@ void ParticleBench::onDraw(SkCanvas* canvas, const AppHost* host) {
 
 void ParticleBench::Init(const AppHost* host) {
   if (host->getUpdateDrawParamFlag()) {
-    MAX_RECT_COUNT=host->getMaxDrawCount();
-    INCREASE_STEP=host->getStepCount();
+    MAX_RECT_COUNT = host->getMaxDrawCount();
+    INCREASE_STEP = host->getStepCount();
     targetFPS = host->getMinFPS();
     host->setUpdateDrawParamFlag(false);
   }
@@ -80,9 +80,9 @@ void ParticleBench::Init(const AppHost* host) {
   for (size_t i = 0; i < MAX_RECT_COUNT; i++) {
     const auto size = (5.f + rectDistribution(rectRng) * 20.f) * host->density();
     auto& item = rects[i];
-    if (graphicType==GraphicType::oval) {
-      item.rect.setXYWH(-size, -size, size, 0.8f*size);
-    }else {
+    if (graphicType == GraphicType::oval) {
+      item.rect.setXYWH(-size, -size, size, 0.8f * size);
+    } else {
       item.rect.setXYWH(-size, -size, size, size);
     }
     item.speedX = speedDistribution(speedRng) * 5.0f;
@@ -149,7 +149,7 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
       auto drawTime = host->averageDrawTime();
       if (!maxDrawCountReached) {
         if ((currentFPS < targetFPS - 0.5f &&
-            drawTime > static_cast<int64_t>(1000000 / targetFPS) - 2000) ||
+             drawTime > static_cast<int64_t>(1000000 / targetFPS) - 2000) ||
             drawCount >= MAX_RECT_COUNT) {
           maxDrawCountReached = true;
           host->setMaxDrawCountReached(maxDrawCountReached);
@@ -240,16 +240,16 @@ void ParticleBench::DrawSimpleGraphicBlending(SkCanvas* canvas) const {
     switch (type) {
       case GraphicType::rectangle:
         canvas->drawRect(rect, paint);
-      break;
+        break;
       case GraphicType::round:
         canvas->drawCircle(rect.centerX(), rect.centerY(), rect.width() * 0.5f, paint);
-      break;
+        break;
       case GraphicType::roundedRectangle:
         canvas->drawRoundRect(rect, rect.width() * 0.2f, rect.width() * 0.2f, paint);
-      break;
+        break;
       case GraphicType::oval:
         canvas->drawOval(rect, paint);
-      break;
+        break;
       default:
         break;
     }
@@ -293,25 +293,25 @@ void ParticleBench::DrawGraphics(SkCanvas* canvas, const AppHost* host) {
   switch (graphicType) {
     case GraphicType::rectangle:
       DrawRects(canvas);
-    break;
+      break;
     case GraphicType::round:
       DrawRound(canvas);
-    break;
+      break;
     case GraphicType::roundedRectangle:
       DrawRoundedRectangle(canvas);
-    break;
+      break;
     case GraphicType::oval:
       DrawOval(canvas);
-    break;
+      break;
     case GraphicType::simpleGraphicBlending:
       DrawSimpleGraphicBlending(canvas);
-    break;
+      break;
     case GraphicType::complexGraphics:
       DrawComplexGraphics(canvas);
-    break;
+      break;
     default:
       DrawRects(canvas);
-    break;
+      break;
   }
 }
 

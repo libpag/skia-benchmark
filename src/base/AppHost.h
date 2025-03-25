@@ -23,27 +23,26 @@
 
 namespace benchmark {
 
-  /**
+/**
 * Record the performance data
 */
-  struct PerfData {
-    float fps;
-    float drawTime;
-    size_t drawCount;
-  };
+struct PerfData {
+  float fps;
+  float drawTime;
+  size_t drawCount;
+};
 
-  /**
+/**
   * Record the type of graphics to be drawn
   */
-  enum GraphicType {
-    rectangle=0,
-    round=1,
-    roundedRectangle=2,
-    oval=3,
-    simpleGraphicBlending=4,
-    complexGraphics=5
-  };
-
+enum class GraphicType {
+  rectangle = 0,
+  round = 1,
+  roundedRectangle = 2,
+  oval = 3,
+  simpleGraphicBlending = 4,
+  complexGraphics = 5
+};
 
 /**
  * AppHost provides information about the current app context.
@@ -164,13 +163,12 @@ class AppHost {
   /**
    * Set draw count.
    */
-  void setDrawCount(size_t drawCount)const;
+  void setDrawCount(size_t drawCount) const;
 
   /**
    * Get draw count.
    */
   size_t getDrawCount() const;
-
 
   /**
    * Get perf data.
@@ -262,7 +260,7 @@ class AppHost {
   mutable size_t _startDrawCount = 1;
   mutable size_t _stepCount = 600;
   mutable size_t _maxDrawCount = 1000000;
-  mutable bool _updateDrawParamFlag=false;
+  mutable bool _updateDrawParamFlag = false;
   mutable GraphicType _graphicType = GraphicType::rectangle;
   mutable bool _maxDrawCountReached = false;
 };

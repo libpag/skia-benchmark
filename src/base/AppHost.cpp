@@ -120,7 +120,8 @@ size_t AppHost::getDrawCount() const {
 }
 
 PerfData AppHost::getPerfData() const {
-  const PerfData perfData={currentFPS(),static_cast<float>(averageDrawTime() / 1000.f),getDrawCount()};
+  const PerfData perfData = {currentFPS(), static_cast<float>(averageDrawTime() / 1000.f),
+                             getDrawCount()};
 
   return perfData;
 }
@@ -130,7 +131,7 @@ void AppHost::setMinFPS(const float minFPS) const {
 }
 
 float AppHost::getMinFPS() const {
-  return  _minFPS;
+  return _minFPS;
 }
 
 void AppHost::setStartDrawCount(const size_t startDrawCount) const {
@@ -164,7 +165,6 @@ void AppHost::setUpdateDrawParamFlag(const bool updateDrawParamFlag) const {
 bool AppHost::getUpdateDrawParamFlag() const {
   return _updateDrawParamFlag;
 }
-
 
 void AppHost::setGraphicType(GraphicType graphicType) const {
   _graphicType = graphicType;
