@@ -26,6 +26,19 @@
 
 namespace benchmark {
 
+enum class DataType {
+  StartCount = 0,
+  StepCount = 1,
+  MaxDrawCount = 2,
+  MinFPS = 3,
+};
+
+struct PerfData {
+  float fps = 0.0f;
+  float drawTime = 0.0f;
+  size_t drawCount = 0;
+};
+
 struct RectData {
   SkRect rect{0, 0, 1, 1};
   float speedX;
@@ -36,6 +49,20 @@ class ParticleBench : public Bench {
  public:
   ParticleBench() : Bench("ParticleBench") {
   }
+
+  explicit ParticleBench(GraphicType type)
+      : Bench("ParticleBench-" + std::to_string(static_cast<int>(type))), graphicType(type) {
+  }
+
+  static void setDrawStatusFlag(bool status);
+
+  static void setDrawParam(int type, float param);
+
+  static bool getMaxDrawCountReached();
+
+  static PerfData getPerfData();
+
+  static void clearPerfData();
 
  protected:
   void onDraw(SkCanvas* canvas, const AppHost* host) override;
@@ -49,25 +76,19 @@ class ParticleBench : public Bench {
 
   void DrawStatus(SkCanvas* canvas, const AppHost* host);
 
-  void DrawRound(SkCanvas* canvas) const;
+  void DrawCircle(SkCanvas* canvas) const;
 
-  void DrawRoundedRectangle(SkCanvas* canvas) const;
+  void DrawRRect(SkCanvas* canvas) const;
 
   void DrawOval(SkCanvas* canvas) const;
 
-  void DrawSimpleGraphicBlending(SkCanvas* canvas) const;
-
-  void DrawComplexGraphics(SkCanvas* canvas) const;
-
-  void DrawGraphics(SkCanvas* canvas, const AppHost* host);
+  void DrawGraphics(SkCanvas* canvas);
 
  private:
   float width = 0;   //appHost width
   float height = 0;  //appHost height
-  float targetFPS = 60.0f;
   float currentFPS = 0.f;
   size_t drawCount = 1;
-  bool maxDrawCountReached = false;
   std::vector<RectData> rects = {};
   SkRect startRect = SkRect::MakeEmpty();
   SkPaint paints[3];  // red, green, blue solid paints
@@ -75,6 +96,15 @@ class ParticleBench : public Bench {
   SkFont fpsFont = {};
   SkColor4f fpsColor = SkColors::kGreen;
   std::vector<std::string> status = {};
+  GraphicType graphicType = GraphicType::Rect;
+
+  inline static bool drawStatusFlag = true;
+  inline static size_t updateDrawCount = 0;
+  inline static float targetFPS = 60.0f;
+  inline static size_t maxDrawCount = 1000000;
+  inline static size_t increaseStep = 600;
+  inline static bool maxDrawCountReached = false;
+  inline static PerfData perfData = {};
 };
 
 }  // namespace benchmark

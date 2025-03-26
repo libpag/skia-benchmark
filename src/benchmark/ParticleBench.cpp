@@ -25,32 +25,19 @@
 #include "tools/Clock.h"
 
 namespace benchmark {
-static size_t MAX_RECT_COUNT = 1000000;
-static size_t INCREASE_STEP = 600;
 static constexpr int64_t FLUSH_INTERVAL = 300000;
 static constexpr float FPS_BACKGROUND_HEIGHT = 50.f;
 static constexpr float STATUS_WIDTH = 250.f;
 static constexpr float FONT_SIZE = 40.f;
-constexpr float PI = 3.14159265358979323846f;
-
 void ParticleBench::onDraw(SkCanvas* canvas, const AppHost* host) {
   Init(host);
   AnimateRects(host);
-  if (!host->isWeb()) {
-    DrawRects(canvas);
-  } else {
-    DrawGraphics(canvas, host);
-  }
+
+  DrawGraphics(canvas);
   DrawStatus(canvas, host);
 }
 
 void ParticleBench::Init(const AppHost* host) {
-  if (host->getUpdateDrawParamFlag()) {
-    MAX_RECT_COUNT = host->getMaxDrawCount();
-    INCREASE_STEP = host->getStepCount();
-    targetFPS = host->getMinFPS();
-    host->setUpdateDrawParamFlag(false);
-  }
   auto hostWidth = static_cast<float>(host->width());
   auto hostHeight = static_cast<float>(host->height());
   if (width == hostWidth && height == hostHeight && !host->isFirstFrame()) {
@@ -59,9 +46,8 @@ void ParticleBench::Init(const AppHost* host) {
   width = hostWidth;
   height = hostHeight;
   status = {};
-  drawCount = 1;
+  drawCount = updateDrawCount == 0 ? 1 : updateDrawCount;
   maxDrawCountReached = false;
-  host->setMaxDrawCountReached(maxDrawCountReached);
   fpsFont = SkFont(host->getTypeFace("default"), 40 * host->density());
 
   for (auto i = 0; i < 3; ++i) {
@@ -71,16 +57,15 @@ void ParticleBench::Init(const AppHost* host) {
     paints->setAntiAlias(false);
   }
   startRect = SkRect::MakeWH(25.f * host->density(), 25.f * host->density());
-  rects.resize(MAX_RECT_COUNT);
+  rects.resize(maxDrawCount);
   std::mt19937 rectRng(18);
   std::mt19937 speedRng(36);
   std::uniform_real_distribution<float> rectDistribution(0, 1);
   std::uniform_real_distribution<float> speedDistribution(-1, 1);
-  auto graphicType = host->getGraphicType();
-  for (size_t i = 0; i < MAX_RECT_COUNT; i++) {
+  for (size_t i = 0; i < maxDrawCount; i++) {
     const auto size = (5.f + rectDistribution(rectRng) * 20.f) * host->density();
     auto& item = rects[i];
-    if (graphicType == GraphicType::oval) {
+    if (graphicType == GraphicType::Oval) {
       item.rect.setXYWH(-size, -size, size, 0.8f * size);
     } else {
       item.rect.setXYWH(-size, -size, size, size);
@@ -101,9 +86,8 @@ void ParticleBench::AnimateRects(const AppHost* host) {
       if (idleTime < halfDrawInterval) {
         factor *= factor;
       }
-      auto step = static_cast<int64_t>(INCREASE_STEP * factor);
-      drawCount = std::min(drawCount + static_cast<size_t>(step), MAX_RECT_COUNT);
-      host->setDrawCount(drawCount);
+      auto step = static_cast<int64_t>(increaseStep * factor);
+      drawCount = std::min(drawCount + static_cast<size_t>(step), maxDrawCount);
     }
   }
   auto startX = host->mouseX();
@@ -150,9 +134,8 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
       if (!maxDrawCountReached) {
         if ((currentFPS < targetFPS - 0.5f &&
              drawTime > static_cast<int64_t>(1000000 / targetFPS) - 2000) ||
-            drawCount >= MAX_RECT_COUNT) {
+            drawCount >= maxDrawCount) {
           maxDrawCountReached = true;
-          host->setMaxDrawCountReached(maxDrawCountReached);
         }
       }
       status.clear();
@@ -168,7 +151,7 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
       if (maxDrawCountReached) {
         countInfo = "[" + countInfo + "]";
       }
-      status.push_back("Rects: " + countInfo);
+      status.push_back("Count: " + countInfo);
       if (currentFPS > 59.f) {
         fpsColor = SkColors::kGreen;
       } else if (currentFPS > 29.f) {
@@ -179,7 +162,10 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
       lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
     }
   }
-  if (host->isWeb()) {
+  perfData.fps = currentFPS;
+  perfData.drawTime = static_cast<float>(host->averageDrawTime()) / 1000.f;
+  perfData.drawCount = drawCount;
+  if (!drawStatusFlag) {
     return;
   }
   SkPaint paint = {};
@@ -196,7 +182,7 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
   }
 }
 
-void ParticleBench::DrawRound(SkCanvas* canvas) const {
+void ParticleBench::DrawCircle(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
     auto& item = rects[i];
     auto& rect = item.rect;
@@ -207,7 +193,7 @@ void ParticleBench::DrawRound(SkCanvas* canvas) const {
   canvas->drawRect(startRect, paint);
 }
 
-void ParticleBench::DrawRoundedRectangle(SkCanvas* canvas) const {
+void ParticleBench::DrawRRect(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
     auto& item = rects[i];
     auto& rect = item.rect;
@@ -230,89 +216,60 @@ void ParticleBench::DrawOval(SkCanvas* canvas) const {
   canvas->drawRect(startRect, paint);
 }
 
-void ParticleBench::DrawSimpleGraphicBlending(SkCanvas* canvas) const {
-  for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
-    SkPaint paint = paints[i % 3];
-    canvas->drawOval(rect, paint);
-    auto type = static_cast<GraphicType>(i % 4);
-    switch (type) {
-      case GraphicType::rectangle:
-        canvas->drawRect(rect, paint);
-        break;
-      case GraphicType::round:
-        canvas->drawCircle(rect.centerX(), rect.centerY(), rect.width() * 0.5f, paint);
-        break;
-      case GraphicType::roundedRectangle:
-        canvas->drawRoundRect(rect, rect.width() * 0.2f, rect.width() * 0.2f, paint);
-        break;
-      case GraphicType::oval:
-        canvas->drawOval(rect, paint);
-        break;
-      default:
-        break;
-    }
-  }
-  SkPaint paint;
-  paint.setColor4f(SkColors::kWhite);
-  canvas->drawRect(startRect, paint);
-}
-
-void ParticleBench::DrawComplexGraphics(SkCanvas* canvas) const {
-  for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
-    SkPaint paint = paints[i % 3];
-    canvas->drawOval(rect, paint);
-    constexpr int points = 5;
-    const float outerRadius = rect.width() * 0.5f;
-    const float innerRadius = outerRadius * 0.382f;
-    SkPath path;
-    for (int j = 0; j < points * 2; j++) {
-      const float radius = (j % 2 == 0) ? outerRadius : innerRadius;
-      const float angle = static_cast<float>(j) * PI / points;
-      const float x = rect.centerX() + radius * std::sin(angle);
-      const float y = rect.centerY() - radius * std::cos(angle);
-      if (j == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas->drawPath(path, paint);
-  }
-  SkPaint paint;
-  paint.setColor4f(SkColors::kWhite);
-  canvas->drawRect(startRect, paint);
-}
-
-void ParticleBench::DrawGraphics(SkCanvas* canvas, const AppHost* host) {
-  auto graphicType = host->getGraphicType();
+void ParticleBench::DrawGraphics(SkCanvas* canvas) {
   switch (graphicType) {
-    case GraphicType::rectangle:
+    case GraphicType::Rect:
       DrawRects(canvas);
       break;
-    case GraphicType::round:
-      DrawRound(canvas);
+    case GraphicType::Circle:
+      DrawCircle(canvas);
       break;
-    case GraphicType::roundedRectangle:
-      DrawRoundedRectangle(canvas);
+    case GraphicType::RRect:
+      DrawRRect(canvas);
       break;
-    case GraphicType::oval:
+    case GraphicType::Oval:
       DrawOval(canvas);
-      break;
-    case GraphicType::simpleGraphicBlending:
-      DrawSimpleGraphicBlending(canvas);
-      break;
-    case GraphicType::complexGraphics:
-      DrawComplexGraphics(canvas);
       break;
     default:
       DrawRects(canvas);
       break;
   }
+}
+
+void ParticleBench::setDrawStatusFlag(const bool status) {
+  drawStatusFlag = status;
+}
+
+void ParticleBench::setDrawParam(int type, const float param) {
+  auto dataType = static_cast<DataType>(type);
+  switch (dataType) {
+    case DataType::StartCount:
+      updateDrawCount = static_cast<size_t>(param);
+      break;
+    case DataType::StepCount:
+      increaseStep = static_cast<size_t>(param);
+      break;
+    case DataType::MaxDrawCount:
+      maxDrawCount = static_cast<size_t>(param);
+      break;
+    case DataType::MinFPS:
+      targetFPS = param;
+      break;
+    default:
+      break;
+  }
+}
+
+bool ParticleBench::getMaxDrawCountReached() {
+  return maxDrawCountReached;
+}
+
+PerfData ParticleBench::getPerfData() {
+  return perfData;
+}
+
+void ParticleBench::clearPerfData() {
+  perfData = {};
 }
 
 }  // namespace benchmark

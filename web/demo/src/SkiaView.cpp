@@ -81,6 +81,7 @@ EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent* e, void* userData) {
     baseView->appHost->mouseMoved(x, y);
     baseView->appHost->resetFrames();
     baseView->drawIndex++;
+    baseView->notifyWebUpdateGraphicType();
   }
   return EM_TRUE;
 }
@@ -112,7 +113,7 @@ EM_BOOL MouseLeaveCallBack(int, const EmscriptenMouseEvent*, void* userData) {
 
 SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
   appHost = std::make_shared<benchmark::AppHost>(1024, 720);
-  appHost->setWebFlag(true);
+  ParticleBench::setDrawStatusFlag(false);
   drawIndex = 0;
   emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
   emscripten_set_mousemove_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseMoveCallBack);
@@ -196,7 +197,7 @@ void SkiaView::draw() {
   auto index = (drawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
-  updatePerfInfo(appHost->getPerfData());
+  updatePerfInfo(ParticleBench::getPerfData());
   skContext->flushAndSubmit(skSurface.get(), static_cast<GrSyncCpu>(true));
   auto drawTime = benchmark::Clock::Now() - currentTime;
   appHost->recordFrame(drawTime);
@@ -214,40 +215,32 @@ void SkiaView::updatePerfInfo(const PerfData& data) const {
   if (lastFlushTime == -1) {
     lastFlushTime = currentTime;
   }
-  if (const auto flushInterval = currentTime - lastFlushTime; flushInterval > FLUSH_INTERVAL) {
-    auto window = emscripten::val::global("window");
-    window.call<void>("updatePerfInfo", data.fps, data.drawTime, data.drawCount,
-                      appHost->getMaxDrawCountReached());
-    lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
+  if (data.fps > 0.0f) {
+    if (const auto flushInterval = currentTime - lastFlushTime; flushInterval > FLUSH_INTERVAL) {
+      auto window = emscripten::val::global("window");
+      window.call<void>("updatePerfInfo", data.fps, data.drawTime, data.drawCount,
+                        ParticleBench::getMaxDrawCountReached());
+      lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
+      ParticleBench::clearPerfData();
+    }
   }
 }
 
 void SkiaView::updateDrawParam(int type, const float value) const {
-  auto dataType = static_cast<DataType>(type);
-  switch (dataType) {
-    case DataType::startCount:
-      appHost->setStartDrawCount(static_cast<size_t>(value));
-      break;
-    case DataType::stepCount:
-      appHost->setStepCount(static_cast<size_t>(value));
-      break;
-    case DataType::maxDrawCount:
-      appHost->setMaxDrawCount(static_cast<size_t>(value));
-      break;
-    case DataType::minFPS:
-      appHost->setMinFPS(value);
-      break;
-    default:
-      break;
-  }
-  appHost->setUpdateDrawParamFlag(true);
+  ParticleBench::setDrawParam(type, value);
   appHost->resetFrames();
 }
 
-void SkiaView::updateGraphicType(int type) const {
-  const auto graphicType = static_cast<GraphicType>(type);
-  appHost->setGraphicType(graphicType);
+void SkiaView::updateGraphicType(int type) {
+  drawIndex = type;
   appHost->resetFrames();
+}
+
+void SkiaView::notifyWebUpdateGraphicType() {
+  const auto numBenches = benchmark::Bench::Count();
+  auto index = (drawIndex % numBenches);
+  auto window = emscripten::val::global("window");
+  window.call<void>("webUpdateGraphicType", index);
 }
 
 }  // namespace benchmark
