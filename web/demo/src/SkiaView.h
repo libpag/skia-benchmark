@@ -46,11 +46,13 @@ class SkiaView {
 
   void updatePerfInfo(const PerfData& data) const;
 
-  void updateDrawParam(int type, float value) const;
+  void updateDrawParam(const DrawParam& drawParam) const;
 
   void updateGraphicType(int type);
 
-  void notifyWebUpdateGraphicType();
+  void notifyWebUpdateGraphicType() const;
+
+  ParticleBench* getBenchByIndex() const;
 
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;

@@ -24,11 +24,6 @@
 #include "include/core/SkCanvas.h"
 
 namespace benchmark {
-/**
-* Record the type of graphics to be drawn
-*/
-enum class GraphicType { Rect = 0, Circle = 1, Oval = 2, RRect = 3 };
-
 class Bench {
  public:
   /**
