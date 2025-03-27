@@ -197,7 +197,7 @@ void SkiaView::draw() {
   auto index = (drawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
-  auto particleBench=static_cast<ParticleBench*>(bench);
+  auto particleBench = static_cast<ParticleBench*>(bench);
   updatePerfInfo(particleBench->getPerfData());
   skContext->flushAndSubmit(skSurface.get(), static_cast<GrSyncCpu>(true));
   auto drawTime = benchmark::Clock::Now() - currentTime;
@@ -221,7 +221,7 @@ void SkiaView::updatePerfInfo(const PerfData& data) const {
       const auto bench = getBenchByIndex();
       auto jsWindow = emscripten::val::global("window");
       jsWindow.call<void>("updatePerfInfo", data.fps, data.drawTime, data.drawCount,
-                        bench->isMaxDrawCountReached());
+                          bench->isMaxDrawCountReached());
       lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
     }
   }
@@ -243,7 +243,6 @@ void SkiaView::notifyWebUpdateGraphicType() const {
   const auto jsWindow = emscripten::val::global("window");
   jsWindow.call<void>("webUpdateGraphicType", index);
 }
-
 
 ParticleBench* SkiaView::getBenchByIndex() const {
   const auto numBenches = benchmark::Bench::Count();

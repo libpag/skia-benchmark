@@ -36,7 +36,6 @@ static float TargetFPS = 60.0f;
 static size_t MaxDrawCount = 1000000;
 static size_t IncreaseStep = 600;
 
-
 static std::string GraphicTypeEnumToString(const GraphicType type) {
   switch (type) {
     case GraphicType::Rect:
@@ -55,7 +54,7 @@ static std::string GraphicTypeEnumToString(const GraphicType type) {
 }
 
 ParticleBench::ParticleBench(const GraphicType type)
-  : Bench("ParticleBench-"+GraphicTypeEnumToString(type)), graphicType(type) {
+    : Bench("ParticleBench-" + GraphicTypeEnumToString(type)), graphicType(type) {
 }
 
 void ParticleBench::onDraw(SkCanvas* canvas, const AppHost* host) {
@@ -76,7 +75,7 @@ void ParticleBench::Init(const AppHost* host) {
   status = {};
   drawCount = UpdateDrawCount == 0 ? 1 : UpdateDrawCount;
   maxDrawCountReached = false;
-  perfData={};
+  perfData = {};
   fpsFont = SkFont(host->getTypeFace("default"), 40 * host->density());
 
   for (auto i = 0; i < 3; ++i) {
@@ -293,7 +292,7 @@ void ParticleBench::DrawGraphics(SkCanvas* canvas) const {
       break;
     case GraphicType::ComplexGraphic:
       DrawComplexGraphic(canvas);
-    break;
+      break;
     default:
       DrawRects(canvas);
       break;
@@ -304,18 +303,18 @@ void ParticleBench::ShowPerfData(const bool status) {
   DrawStatusFlag = status;
 }
 
-void ParticleBench::UpdateDrawParam(const DrawParam& drawParam){
+void ParticleBench::UpdateDrawParam(const DrawParam& drawParam) {
   UpdateDrawCount = drawParam.startCount;
   IncreaseStep = drawParam.stepCount;
   TargetFPS = drawParam.minFPS;
   MaxDrawCount = drawParam.maxCount;
 }
 
-bool ParticleBench::isMaxDrawCountReached() const{
+bool ParticleBench::isMaxDrawCountReached() const {
   return maxDrawCountReached;
 }
 
-PerfData ParticleBench::getPerfData() const{
+PerfData ParticleBench::getPerfData() const {
   return perfData;
 }
 
