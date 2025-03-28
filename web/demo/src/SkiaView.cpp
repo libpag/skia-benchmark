@@ -228,7 +228,10 @@ void SkiaView::updatePerfInfo(const PerfData& data) const {
 }
 
 void SkiaView::updateDrawParam(const DrawParam& drawParam) const {
-  ParticleBench::UpdateDrawParam(drawParam);
+  ParticleBench::SetInitDrawCount(drawParam.startCount);
+  ParticleBench::SetStepDrawCount(drawParam.stepCount);
+  ParticleBench::SetMaxDrawCount(drawParam.maxCount);
+  ParticleBench::SetTargetFPS(drawParam.minFPS);
   appHost->resetFrames();
 }
 
