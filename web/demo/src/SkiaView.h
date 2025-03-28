@@ -21,6 +21,7 @@
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
 #include "base/AppHost.h"
+#include "benchmark/ParticleBench.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
 
 using namespace emscripten;
@@ -41,6 +42,18 @@ class SkiaView {
 
   void draw();
 
+  void restartDraw() const;
+
+  void updatePerfInfo(const PerfData& data) const;
+
+  void updateDrawParam(const DrawParam& drawParam) const;
+
+  void updateGraphicType(int type);
+
+  void notifyWebUpdateGraphicType() const;
+
+  ParticleBench* getBenchByIndex() const;
+
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;
 
@@ -48,6 +61,5 @@ class SkiaView {
   std::string canvasID = "";
   sk_sp<GrDirectContext> skContext = nullptr;
   sk_sp<SkSurface> skSurface = nullptr;
-
 };
-} // namespace benchmark
+}  // namespace benchmark

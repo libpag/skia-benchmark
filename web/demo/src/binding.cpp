@@ -17,9 +17,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <emscripten/bind.h>
-
 #include "SkiaView.h"
-
+#include "benchmark/ParticleBench.h"
 using namespace benchmark;
 using namespace emscripten;
 
@@ -36,5 +35,14 @@ EMSCRIPTEN_BINDINGS(SkiaDemo) {
       .function("setImagePath", &SkiaView::setImagePath)
       .function("updateSize", &SkiaView::updateSize)
       .function("startDraw", &SkiaView::startDraw)
-      .function("registerFonts", &SkiaView::registerFonts);
+      .function("registerFonts", &SkiaView::registerFonts)
+      .function("restartDraw", &SkiaView::restartDraw)
+      .function("updateDrawParam", &SkiaView::updateDrawParam)
+      .function("updateGraphicType", &SkiaView::updateGraphicType);
+
+  value_object<DrawParam>("DrawParam")
+      .field("startCount", &DrawParam::startCount)
+      .field("stepCount", &DrawParam::stepCount)
+      .field("minFPS", &DrawParam::minFPS)
+      .field("maxCount", &DrawParam::maxCount);
 }

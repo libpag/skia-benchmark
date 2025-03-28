@@ -17,6 +17,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "SkiaView.h"
+#include <emscripten/val.h>
 #include "base/Bench.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorSpace.h"
@@ -34,6 +35,8 @@
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
 #include "src/ports/SkTypeface_FreeType.h"
 #include "tools/Clock.h"
+
+static constexpr int64_t FLUSH_INTERVAL = 300000;
 
 namespace benchmark {
 sk_sp<SkData> GetDataFromEmscripten(const val& emscriptenData) {
@@ -63,11 +66,22 @@ EM_BOOL RequestFrameCallback(double, void* userData) {
   return EM_TRUE;
 }
 
-EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent*, void* userData) {
+EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent* e, void* userData) {
   auto baseView = static_cast<SkiaView*>(userData);
   if (baseView) {
+    double devicePixelRatio = emscripten_get_device_pixel_ratio();
+    double sidebarWidth =
+        EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
+    // Adjust click coordinates by subtracting the sidebar width
+    // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
+    // ensure the coordinates are correct relative to the canvas.
+    float x = static_cast<float>(devicePixelRatio) *
+              (static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
+    float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
+    baseView->appHost->mouseMoved(x, y);
     baseView->appHost->resetFrames();
     baseView->drawIndex++;
+    baseView->notifyWebUpdateGraphicType();
   }
   return EM_TRUE;
 }
@@ -76,8 +90,15 @@ EM_BOOL MouseMoveCallBack(int, const EmscriptenMouseEvent* e, void* userData) {
   auto appHost = static_cast<benchmark::AppHost*>(userData);
   if (appHost) {
     double devicePixelRatio = emscripten_get_device_pixel_ratio();
-    appHost->mouseMoved(static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientX),
-                        static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY));
+    double sidebarWidth =
+        EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
+    // Adjust click coordinates by subtracting the sidebar width
+    // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
+    // ensure the coordinates are correct relative to the canvas.
+    float x = static_cast<float>(devicePixelRatio) *
+              (static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
+    float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
+    appHost->mouseMoved(x, y);
   }
   return EM_TRUE;
 }
@@ -92,6 +113,7 @@ EM_BOOL MouseLeaveCallBack(int, const EmscriptenMouseEvent*, void* userData) {
 
 SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
   appHost = std::make_shared<benchmark::AppHost>(1024, 720);
+  ParticleBench::ShowPerfData(false);
   drawIndex = 0;
   emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
   emscripten_set_mousemove_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseMoveCallBack);
@@ -100,12 +122,12 @@ SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
   EmscriptenWebGLContextAttributes attrs;
   emscripten_webgl_init_context_attributes(&attrs);
   attrs.majorVersion = 2;
-  EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context(canvasID.c_str(), &attrs);
+  EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context =
+      emscripten_webgl_create_context(canvasID.c_str(), &attrs);
   emscripten_webgl_make_context_current(context);
 
   auto interface = GrGLMakeNativeInterface();
   skContext = GrDirectContexts::MakeGL(interface);
-
 }
 
 SkiaView::~SkiaView() {
@@ -127,12 +149,9 @@ void SkiaView::updateSize(float devicePixelRatio) {
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
     sk_sp<SkColorSpace> colorSpace = SkColorSpace::MakeSRGB();
 
-    skSurface = SkSurfaces::WrapBackendRenderTarget(skContext.get(),
-                                                    backendRenderTarget,
-                                                    kBottomLeft_GrSurfaceOrigin,
-                                                    kN32_SkColorType,
-                                                    colorSpace,
-                                                    &surfaceProps);
+    skSurface = SkSurfaces::WrapBackendRenderTarget(skContext.get(), backendRenderTarget,
+                                                    kBottomLeft_GrSurfaceOrigin, kN32_SkColorType,
+                                                    colorSpace, &surfaceProps);
     appHost->updateScreen(width, height, devicePixelRatio);
   }
 }
@@ -178,11 +197,64 @@ void SkiaView::draw() {
   auto index = (drawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
+  auto particleBench = static_cast<ParticleBench*>(bench);
+  updatePerfInfo(particleBench->getPerfData());
   skContext->flushAndSubmit(skSurface.get(), static_cast<GrSyncCpu>(true));
   auto drawTime = benchmark::Clock::Now() - currentTime;
   appHost->recordFrame(drawTime);
 }
+
+void SkiaView::restartDraw() const {
+  if (appHost) {
+    appHost->resetFrames();
+  }
 }
+
+void SkiaView::updatePerfInfo(const PerfData& data) const {
+  static int64_t lastFlushTime = -1;
+  const auto currentTime = Clock::Now();
+  if (lastFlushTime == -1) {
+    lastFlushTime = currentTime;
+  }
+  if (data.fps > 0.0f) {
+    if (const auto flushInterval = currentTime - lastFlushTime; flushInterval > FLUSH_INTERVAL) {
+      const auto bench = getBenchByIndex();
+      auto jsWindow = emscripten::val::global("window");
+      jsWindow.call<void>("updatePerfInfo", data.fps, data.drawTime, data.drawCount,
+                          bench->isMaxDrawCountReached());
+      lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
+    }
+  }
+}
+
+void SkiaView::updateDrawParam(const DrawParam& drawParam) const {
+  ParticleBench::SetInitDrawCount(drawParam.startCount);
+  ParticleBench::SetStepDrawCount(drawParam.stepCount);
+  ParticleBench::SetMaxDrawCount(drawParam.maxCount);
+  ParticleBench::SetTargetFPS(drawParam.minFPS);
+  appHost->resetFrames();
+}
+
+void SkiaView::updateGraphicType(int type) {
+  drawIndex = type;
+  appHost->resetFrames();
+}
+
+void SkiaView::notifyWebUpdateGraphicType() const {
+  const auto numBenches = benchmark::Bench::Count();
+  auto index = (drawIndex % numBenches);
+  const auto jsWindow = emscripten::val::global("window");
+  jsWindow.call<void>("webUpdateGraphicType", index);
+}
+
+ParticleBench* SkiaView::getBenchByIndex() const {
+  const auto numBenches = benchmark::Bench::Count();
+  const auto index = (drawIndex % numBenches);
+  const auto bench = benchmark::Bench::GetByIndex(index);
+  return static_cast<ParticleBench*>(bench);
+}
+
+}  // namespace benchmark
 
 int main() {
   return 0;
