@@ -19,6 +19,7 @@
 export class SkiaView {
     public updateSize: (devicePixelRatio: number) => void;
     public startDraw: () => void;
+    public init: () => void;
 }
 
 export function updateSize(skiaView: SkiaView) {

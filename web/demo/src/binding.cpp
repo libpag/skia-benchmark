@@ -38,7 +38,9 @@ EMSCRIPTEN_BINDINGS(SkiaDemo) {
       .function("registerFonts", &SkiaView::registerFonts)
       .function("restartDraw", &SkiaView::restartDraw)
       .function("updateDrawParam", &SkiaView::updateDrawParam)
-      .function("updateGraphicType", &SkiaView::updateGraphicType);
+      .function("updateGraphicType", &SkiaView::updateGraphicType)
+      .function("init", &SkiaView::init)
+      .function("showSideBar", &SkiaView::showSideBar);
 
   value_object<DrawParam>("DrawParam")
       .field("startCount", &DrawParam::startCount)

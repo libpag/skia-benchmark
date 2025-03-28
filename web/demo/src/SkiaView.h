@@ -30,6 +30,8 @@ class SkiaView {
  public:
   SkiaView(const std::string& canvasID);
 
+  void init();
+
   ~SkiaView();
 
   void setImagePath(const std::string& imagePath);
@@ -54,8 +56,11 @@ class SkiaView {
 
   ParticleBench* getBenchByIndex() const;
 
+  void showSideBar(bool status);
+
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;
+  bool showSideBarFlag = false;
 
  private:
   std::string canvasID = "";

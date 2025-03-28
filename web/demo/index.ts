@@ -30,10 +30,11 @@ if (typeof window !== 'undefined') {
                 throw new Error("Benchmark init failed. Please check the .wasm file path!.");
             }
             skiaView = module.SkiaView.MakeFrom('#benchmark');
+            skiaView.init();
             var fontPath = "../../resources/font/SFNSRounded.ttf";
             const fontBuffer = await fetch(fontPath).then((response) => response.arrayBuffer());
             const fontUIntArray = new Uint8Array(fontBuffer);
-            var emojiFontPath = "https://raw.githubusercontent.com/googlefonts/noto-emoji/main/fonts/NotoColorEmoji.ttf";
+            var emojiFontPath = "../../resources/font/NotoColorEmoji.ttf";
             const emojiFontBuffer = await fetch(emojiFontPath).then((response) => response.arrayBuffer());
             const emojiFontUIntArray = new Uint8Array(emojiFontBuffer);
             skiaView.registerFonts(fontUIntArray, emojiFontUIntArray);

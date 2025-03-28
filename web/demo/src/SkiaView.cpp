@@ -70,35 +70,41 @@ EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent* e, void* userData) {
   auto baseView = static_cast<SkiaView*>(userData);
   if (baseView) {
     double devicePixelRatio = emscripten_get_device_pixel_ratio();
-    double sidebarWidth =
-        EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
-    // Adjust click coordinates by subtracting the sidebar width
-    // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
-    // ensure the coordinates are correct relative to the canvas.
+    double sidebarWidth = 0.0;
+    if (baseView->showSideBarFlag) {
+      // Adjust click coordinates by subtracting the sidebar width
+      // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
+      // ensure the coordinates are correct relative to the canvas.
+      sidebarWidth = EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
+    }
     float x = static_cast<float>(devicePixelRatio) *
               (static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
     float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
     baseView->appHost->mouseMoved(x, y);
     baseView->appHost->resetFrames();
     baseView->drawIndex++;
-    baseView->notifyWebUpdateGraphicType();
+    if (baseView->showSideBarFlag) {
+      baseView->notifyWebUpdateGraphicType();
+    }
   }
   return EM_TRUE;
 }
 
 EM_BOOL MouseMoveCallBack(int, const EmscriptenMouseEvent* e, void* userData) {
-  auto appHost = static_cast<benchmark::AppHost*>(userData);
-  if (appHost) {
+  auto baseView = static_cast<SkiaView*>(userData);
+  if (baseView) {
     double devicePixelRatio = emscripten_get_device_pixel_ratio();
-    double sidebarWidth =
-        EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
-    // Adjust click coordinates by subtracting the sidebar width
-    // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
-    // ensure the coordinates are correct relative to the canvas.
+    double sidebarWidth = 0.0;
+    if (baseView->showSideBarFlag) {
+      // Adjust click coordinates by subtracting the sidebar width
+      // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
+      // ensure the coordinates are correct relative to the canvas.
+      sidebarWidth = EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
+    }
     float x = static_cast<float>(devicePixelRatio) *
               (static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
     float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
-    appHost->mouseMoved(x, y);
+    baseView->appHost->mouseMoved(x, y);
   }
   return EM_TRUE;
 }
@@ -113,12 +119,7 @@ EM_BOOL MouseLeaveCallBack(int, const EmscriptenMouseEvent*, void* userData) {
 
 SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
   appHost = std::make_shared<benchmark::AppHost>(1024, 720);
-  ParticleBench::ShowPerfData(false);
   drawIndex = 0;
-  emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
-  emscripten_set_mousemove_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseMoveCallBack);
-  emscripten_set_mouseleave_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseLeaveCallBack);
-
   EmscriptenWebGLContextAttributes attrs;
   emscripten_webgl_init_context_attributes(&attrs);
   attrs.majorVersion = 2;
@@ -128,6 +129,16 @@ SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
 
   auto interface = GrGLMakeNativeInterface();
   skContext = GrDirectContexts::MakeGL(interface);
+}
+
+void SkiaView::init() {
+  drawIndex = 0;
+  if (showSideBarFlag) {
+    ParticleBench::ShowPerfData(false);
+  }
+  emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
+  emscripten_set_mousemove_callback(canvasID.c_str(), this, EM_TRUE, MouseMoveCallBack);
+  emscripten_set_mouseleave_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseLeaveCallBack);
 }
 
 SkiaView::~SkiaView() {
@@ -198,7 +209,9 @@ void SkiaView::draw() {
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
   auto particleBench = static_cast<ParticleBench*>(bench);
-  updatePerfInfo(particleBench->getPerfData());
+  if (showSideBarFlag) {
+    updatePerfInfo(particleBench->getPerfData());
+  }
   skContext->flushAndSubmit(skSurface.get(), static_cast<GrSyncCpu>(true));
   auto drawTime = benchmark::Clock::Now() - currentTime;
   appHost->recordFrame(drawTime);
@@ -254,8 +267,11 @@ ParticleBench* SkiaView::getBenchByIndex() const {
   return static_cast<ParticleBench*>(bench);
 }
 
-}  // namespace benchmark
+void SkiaView::showSideBar(bool status) {
+  showSideBarFlag = status;
+}
 
+}  // namespace benchmark
 int main() {
   return 0;
 }
