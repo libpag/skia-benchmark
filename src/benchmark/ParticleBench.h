@@ -17,16 +17,24 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
 #include <deque>
-#include "../base/Bench.h"
+#include "base/Bench.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkPath.h"
 #include "include/core/SkRect.h"
 
 namespace benchmark {
 
 enum class GraphicType { Rect, Circle, Oval, RRect, Star };
+
+struct GraphicData {
+  SkRect rect{0, 0, 1, 1};
+  float speedX;
+  float speedY;
+};
 
 struct DrawParam {
   size_t startCount = 1;
@@ -39,12 +47,6 @@ struct PerfData {
   float fps = 0.0f;
   float drawTime = 0.0f;
   size_t drawCount = 0;
-};
-
-struct RectData {
-  SkRect rect{0, 0, 1, 1};
-  float speedX;
-  float speedY;
 };
 
 class ParticleBench : public Bench {
@@ -95,7 +97,8 @@ class ParticleBench : public Bench {
   float height = 0;  //appHost height
   float currentFPS = 0.f;
   size_t drawCount = 1;
-  std::vector<RectData> rects = {};
+  std::vector<GraphicData> graphics = {};
+  std::vector<SkPath> paths = {};
   SkRect startRect = SkRect::MakeEmpty();
   SkPaint paints[3];  // red, green, blue solid paints
   int64_t lastFlushTime = -1;

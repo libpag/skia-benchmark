@@ -64,6 +64,29 @@ void ParticleBench::onDraw(SkCanvas* canvas, const AppHost* host) {
   DrawStatus(canvas, host);
 }
 
+static SkPath CreateStar(const SkRect& rect) {
+  const int points = 5;
+  const float outerRadius = rect.width() * 0.5f;
+  const float innerRadius = outerRadius * 0.382f;
+  SkPath path;
+  const float angleStep = static_cast<float>(M_PI) / points;
+  const float centerX = rect.centerX();
+  const float centerY = rect.centerY();
+  for (int j = 0; j < points * 2; j++) {
+    const float radius = (j % 2 == 0) ? outerRadius : innerRadius;
+    const float angle = static_cast<float>(j) * angleStep;
+    const float x = centerX + radius * std::sin(angle);
+    const float y = centerY - radius * std::cos(angle);
+    if (j == 0) {
+      path.moveTo(x, y);
+    } else {
+      path.lineTo(x, y);
+    }
+  }
+  path.close();
+  return path;
+}
+
 void ParticleBench::Init(const AppHost* host) {
   auto hostWidth = static_cast<float>(host->width());
   auto hostHeight = static_cast<float>(host->height());
@@ -85,22 +108,28 @@ void ParticleBench::Init(const AppHost* host) {
     paints->setAntiAlias(false);
   }
   startRect = SkRect::MakeWH(25.f * host->density(), 25.f * host->density());
-  rects.resize(MaxDrawCount);
+  graphics.resize(MaxDrawCount);
   std::mt19937 rectRng(18);
   std::mt19937 speedRng(36);
   std::uniform_real_distribution<float> rectDistribution(0, 1);
   std::uniform_real_distribution<float> speedDistribution(-1, 1);
   for (size_t i = 0; i < MaxDrawCount; i++) {
     const auto size = (5.f + rectDistribution(rectRng) * 20.f) * host->density();
-    auto& item = rects[i];
+    auto& graphic = graphics[i];
     if (graphicType == GraphicType::Oval) {
       const float ratio = 0.5f + rectDistribution(rectRng);
-      item.rect.setXYWH(-size, -size, size, ratio * size);
+      graphic.rect.setXYWH(-size, -size, size, ratio * size);
     } else {
-      item.rect.setXYWH(-size, -size, size, size);
+      graphic.rect.setXYWH(-size, -size, size, size);
     }
-    item.speedX = speedDistribution(speedRng) * 5.0f;
-    item.speedY = speedDistribution(speedRng) * 5.0f;
+    graphic.speedX = speedDistribution(speedRng) * 5.0f;
+    graphic.speedY = speedDistribution(speedRng) * 5.0f;
+  }
+  if (graphicType == GraphicType::Star) {
+    paths.resize(MaxDrawCount);
+    for (size_t i = 0; i < MaxDrawCount; i++) {
+      paths[i] = CreateStar(graphics[i].rect);
+    }
   }
 }
 
@@ -128,21 +157,21 @@ void ParticleBench::AnimateRects(const AppHost* host) {
   }
   startRect.offsetTo(startX - startRect.width() * 0.5f, startY - startRect.height() * 0.5f);
   for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
+    auto& graphic = graphics[i];
+    auto& rect = graphic.rect;
     if (rect.right() <= 0 || rect.left() >= width || rect.bottom() <= 0 || rect.top() >= height) {
       auto offsetX = rect.width() * 0.5f;
       auto offsetY = rect.height() * 0.5f;
       rect.offsetTo(startX - offsetX, startY - offsetY);
     } else {
-      rect.offset(item.speedX, item.speedY);
+      rect.offset(graphic.speedX, graphic.speedY);
     }
   }
 }
 
 void ParticleBench::DrawRects(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
-    canvas->drawRect(rects[i].rect, paints[i % 3]);
+    canvas->drawRect(graphics[i].rect, paints[i % 3]);
   }
   SkPaint paint;
   paint.setColor4f(SkColors::kWhite);
@@ -197,6 +226,7 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
   if (!DrawStatusFlag) {
     return;
   }
+  canvas->resetMatrix();
   SkPaint paint = {};
   paint.setColor4f(SkColor4f{0.32f, 0.42f, 0.62f, 0.9f});
   auto backgroundRect =
@@ -213,8 +243,8 @@ void ParticleBench::DrawStatus(SkCanvas* canvas, const AppHost* host) {
 
 void ParticleBench::DrawCircle(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
+    auto& graphic = graphics[i];
+    auto& rect = graphic.rect;
     canvas->drawCircle(rect.centerX(), rect.centerY(), rect.width() * 0.5f, paints[i % 3]);
   }
   SkPaint paint;
@@ -224,8 +254,8 @@ void ParticleBench::DrawCircle(SkCanvas* canvas) const {
 
 void ParticleBench::DrawRRect(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
+    auto& graphic = graphics[i];
+    auto& rect = graphic.rect;
     const float radius = rect.width() * 0.2f;
     canvas->drawRoundRect(rect, radius, radius, paints[i % 3]);
   }
@@ -236,8 +266,8 @@ void ParticleBench::DrawRRect(SkCanvas* canvas) const {
 
 void ParticleBench::DrawOval(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
+    auto& graphic = graphics[i];
+    auto& rect = graphic.rect;
     canvas->drawOval(rect, paints[i % 3]);
   }
   SkPaint paint;
@@ -247,29 +277,10 @@ void ParticleBench::DrawOval(SkCanvas* canvas) const {
 
 void ParticleBench::DrawStar(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
-    auto& item = rects[i];
-    auto& rect = item.rect;
-    SkPaint paint = paints[i % 3];
-    const int points = 5;
-    const float outerRadius = rect.width() * 0.5f;
-    const float innerRadius = outerRadius * 0.382f;
-    SkPath path;
-    const float angleStep = static_cast<float>(M_PI) / points;
-    const float centerX = rect.centerX();
-    const float centerY = rect.centerY();
-    for (int j = 0; j < points * 2; j++) {
-      const float radius = (j % 2 == 0) ? outerRadius : innerRadius;
-      const float angle = static_cast<float>(j) * angleStep;
-      const float x = centerX + radius * std::sin(angle);
-      const float y = centerY - radius * std::cos(angle);
-      if (j == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas->drawPath(path, paint);
+    auto& graphic = graphics[i];
+    canvas->setMatrix(SkMatrix::Translate(graphic.rect.centerX(), graphic.rect.centerY()));
+    auto& paint = paints[i % 3];
+    canvas->drawPath(paths[i], paint);
   }
   SkPaint paint;
   paint.setColor4f(SkColors::kWhite);
