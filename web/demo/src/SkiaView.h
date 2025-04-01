@@ -50,12 +50,13 @@ class SkiaView {
 
   void updateGraphicType(int type);
 
-  void notifyWebUpdateGraphicType() const;
-
   ParticleBench* getBenchByIndex() const;
+
+  void showPerfData(bool status);
 
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;
+  bool showPerfDataFlag = true;
 
  private:
   std::string canvasID = "";
