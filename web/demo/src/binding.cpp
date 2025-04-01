@@ -39,7 +39,6 @@ EMSCRIPTEN_BINDINGS(SkiaDemo) {
       .function("restartDraw", &SkiaView::restartDraw)
       .function("updateDrawParam", &SkiaView::updateDrawParam)
       .function("updateGraphicType", &SkiaView::updateGraphicType)
-      .function("init", &SkiaView::init)
       .function("showSideBar", &SkiaView::showSideBar);
 
   value_object<DrawParam>("DrawParam")

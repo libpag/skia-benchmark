@@ -70,22 +70,11 @@ EM_BOOL MouseClickCallback(int, const EmscriptenMouseEvent* e, void* userData) {
   auto baseView = static_cast<SkiaView*>(userData);
   if (baseView) {
     double devicePixelRatio = emscripten_get_device_pixel_ratio();
-    double sidebarWidth = 0.0;
-    if (baseView->showSideBarFlag) {
-      // Adjust click coordinates by subtracting the sidebar width
-      // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
-      // ensure the coordinates are correct relative to the canvas.
-      sidebarWidth = EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
-    }
-    float x = static_cast<float>(devicePixelRatio) *
-              (static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
+    float x = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientX);
     float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
     baseView->appHost->mouseMoved(x, y);
     baseView->appHost->resetFrames();
     baseView->drawIndex++;
-    if (baseView->showSideBarFlag) {
-      baseView->notifyWebUpdateGraphicType();
-    }
   }
   return EM_TRUE;
 }
@@ -94,15 +83,7 @@ EM_BOOL MouseMoveCallBack(int, const EmscriptenMouseEvent* e, void* userData) {
   auto baseView = static_cast<SkiaView*>(userData);
   if (baseView) {
     double devicePixelRatio = emscripten_get_device_pixel_ratio();
-    double sidebarWidth = 0.0;
-    if (baseView->showSideBarFlag) {
-      // Adjust click coordinates by subtracting the sidebar width
-      // Since there is a sidebar on the page, the click event coordinates need to be adjusted by subtracting the sidebar width to
-      // ensure the coordinates are correct relative to the canvas.
-      sidebarWidth = EM_ASM_DOUBLE({ return document.getElementById('sidebar').clientWidth; }, "");
-    }
-    float x = static_cast<float>(devicePixelRatio) *
-              (static_cast<float>(e->clientX) - static_cast<float>(sidebarWidth));
+    float x = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientX);
     float y = static_cast<float>(devicePixelRatio) * static_cast<float>(e->clientY);
     baseView->appHost->mouseMoved(x, y);
   }
@@ -120,6 +101,10 @@ EM_BOOL MouseLeaveCallBack(int, const EmscriptenMouseEvent*, void* userData) {
 SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
   appHost = std::make_shared<benchmark::AppHost>(1024, 720);
   drawIndex = 0;
+  emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
+  emscripten_set_mousemove_callback(canvasID.c_str(), this, EM_TRUE, MouseMoveCallBack);
+  emscripten_set_mouseleave_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseLeaveCallBack);
+
   EmscriptenWebGLContextAttributes attrs;
   emscripten_webgl_init_context_attributes(&attrs);
   attrs.majorVersion = 2;
@@ -129,16 +114,6 @@ SkiaView::SkiaView(const std::string& canvasID) : canvasID(canvasID) {
 
   auto interface = GrGLMakeNativeInterface();
   skContext = GrDirectContexts::MakeGL(interface);
-}
-
-void SkiaView::init() {
-  drawIndex = 0;
-  if (showSideBarFlag) {
-    ParticleBench::ShowPerfData(false);
-  }
-  emscripten_set_click_callback(canvasID.c_str(), this, EM_TRUE, MouseClickCallback);
-  emscripten_set_mousemove_callback(canvasID.c_str(), this, EM_TRUE, MouseMoveCallBack);
-  emscripten_set_mouseleave_callback(canvasID.c_str(), appHost.get(), EM_TRUE, MouseLeaveCallBack);
 }
 
 SkiaView::~SkiaView() {
@@ -187,6 +162,9 @@ void SkiaView::registerFonts(const val& fontVal, const val& emojiFontVal) {
 }
 
 void SkiaView::startDraw() {
+  if (showSideBarFlag) {
+    ParticleBench::ShowPerfData(false);
+  }
   emscripten_request_animation_frame_loop(RequestFrameCallback, this);
 }
 
@@ -251,13 +229,6 @@ void SkiaView::updateDrawParam(const DrawParam& drawParam) const {
 void SkiaView::updateGraphicType(int type) {
   drawIndex = type;
   appHost->resetFrames();
-}
-
-void SkiaView::notifyWebUpdateGraphicType() const {
-  const auto numBenches = benchmark::Bench::Count();
-  auto index = (drawIndex % numBenches);
-  const auto jsWindow = emscripten::val::global("window");
-  jsWindow.call<void>("webUpdateGraphicType", index);
 }
 
 ParticleBench* SkiaView::getBenchByIndex() const {

@@ -30,8 +30,6 @@ class SkiaView {
  public:
   SkiaView(const std::string& canvasID);
 
-  void init();
-
   ~SkiaView();
 
   void setImagePath(const std::string& imagePath);
@@ -51,8 +49,6 @@ class SkiaView {
   void updateDrawParam(const DrawParam& drawParam) const;
 
   void updateGraphicType(int type);
-
-  void notifyWebUpdateGraphicType() const;
 
   ParticleBench* getBenchByIndex() const;
 
