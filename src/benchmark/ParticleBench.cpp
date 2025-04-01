@@ -31,7 +31,7 @@ static constexpr float STATUS_WIDTH = 250.f;
 static constexpr float FONT_SIZE = 40.f;
 
 static bool DrawStatusFlag = true;
-static size_t InitDrawCount = 0;
+static size_t InitDrawCount = 1;
 static float TargetFPS = 60.0f;
 static size_t MaxDrawCount = 1000000;
 static size_t IncreaseStep = 1000;
@@ -96,7 +96,7 @@ void ParticleBench::Init(const AppHost* host) {
   width = hostWidth;
   height = hostHeight;
   status = {};
-  drawCount = std::max(static_cast<size_t>(1), InitDrawCount);
+  drawCount = InitDrawCount;
   maxDrawCountReached = false;
   perfData = {};
   fpsFont = SkFont(host->getTypeFace("default"), 40 * host->density());
@@ -105,16 +105,16 @@ void ParticleBench::Init(const AppHost* host) {
     SkColor4f color = SkColors::kBlack;
     color[i] = 1.f;
     paints[i].setColor4f(color);
-    paints->setAntiAlias(false);
+    paints->setAntiAlias(true);
   }
-  startRect = SkRect::MakeWH(25.f * host->density(), 25.f * host->density());
+  startRect = SkRect::MakeWH(20.f * host->density(), 20.f * host->density());
   graphics.resize(MaxDrawCount);
   std::mt19937 rectRng(18);
   std::mt19937 speedRng(36);
   std::uniform_real_distribution<float> rectDistribution(0, 1);
   std::uniform_real_distribution<float> speedDistribution(-1, 1);
   for (size_t i = 0; i < MaxDrawCount; i++) {
-    const auto size = (5.f + rectDistribution(rectRng) * 20.f) * host->density();
+    const auto size = (4.f + rectDistribution(rectRng) * 10.f) * host->density();
     auto& graphic = graphics[i];
     if (graphicType == GraphicType::Oval) {
       const float ratio = 0.5f + rectDistribution(rectRng);
@@ -256,7 +256,7 @@ void ParticleBench::DrawRRect(SkCanvas* canvas) const {
   for (size_t i = 0; i < drawCount; i++) {
     auto& graphic = graphics[i];
     auto& rect = graphic.rect;
-    const float radius = rect.width() * 0.2f;
+    const float radius = rect.width() * 0.25f;
     canvas->drawRoundRect(rect, radius, radius, paints[i % 3]);
   }
   SkPaint paint;
@@ -315,7 +315,7 @@ void ParticleBench::ShowPerfData(const bool status) {
 }
 
 void ParticleBench::SetInitDrawCount(const size_t count) {
-  InitDrawCount = count;
+  InitDrawCount = std::max(static_cast<size_t>(1), count);
 }
 
 void ParticleBench::SetMaxDrawCount(const size_t count) {
