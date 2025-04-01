@@ -72,3 +72,4 @@ QTCMAKE.cfg
 *.wasm
 web/demo/*.js
 web/demo/*/*.js
+web/package-lock.json

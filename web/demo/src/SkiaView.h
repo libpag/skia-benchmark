@@ -52,11 +52,11 @@ class SkiaView {
 
   ParticleBench* getBenchByIndex() const;
 
-  void showSideBar(bool status);
+  void showPerfData(bool status);
 
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;
-  bool showSideBarFlag = false;
+  bool showPerfDataFlag = false;
 
  private:
   std::string canvasID = "";
