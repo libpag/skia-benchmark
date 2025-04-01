@@ -162,7 +162,7 @@ void SkiaView::registerFonts(const val& fontVal, const val& emojiFontVal) {
 }
 
 void SkiaView::startDraw() {
-  ParticleBench::ShowPerfData(!showPerfDataFlag);
+  ParticleBench::ShowPerfData(showPerfDataFlag);
   emscripten_request_animation_frame_loop(RequestFrameCallback, this);
 }
 
@@ -185,7 +185,7 @@ void SkiaView::draw() {
   auto bench = benchmark::Bench::GetByIndex(index);
   bench->draw(canvas, appHost.get());
   auto particleBench = static_cast<ParticleBench*>(bench);
-  if (showPerfDataFlag) {
+  if (!showPerfDataFlag) {
     updatePerfInfo(particleBench->getPerfData());
   }
   skContext->flushAndSubmit(skSurface.get(), static_cast<GrSyncCpu>(true));
@@ -200,6 +200,10 @@ void SkiaView::restartDraw() const {
 }
 
 void SkiaView::updatePerfInfo(const PerfData& data) const {
+  auto jsWindow = emscripten::val::global("window");
+  if (!jsWindow.hasOwnProperty("updatePerfInfo")) {
+    return;
+  }
   static int64_t lastFlushTime = -1;
   const auto currentTime = Clock::Now();
   if (lastFlushTime == -1) {
@@ -208,7 +212,6 @@ void SkiaView::updatePerfInfo(const PerfData& data) const {
   if (data.fps > 0.0f) {
     if (const auto flushInterval = currentTime - lastFlushTime; flushInterval > FLUSH_INTERVAL) {
       const auto bench = getBenchByIndex();
-      auto jsWindow = emscripten::val::global("window");
       jsWindow.call<void>("updatePerfInfo", data.fps, data.drawTime, data.drawCount,
                           bench->isMaxDrawCountReached());
       lastFlushTime = currentTime - (flushInterval % FLUSH_INTERVAL);
