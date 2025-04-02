@@ -18,13 +18,14 @@
 
 
 import Benchmark from './wasm-mt/Benchmark';
-import {SkiaView, startDraw, updateSize} from "./common";
+import {SkiaView, startDraw, updateSize, setCanvasDefaultSize, setupCoordinateConversion} from "./common";
 
 let skiaView: SkiaView;
 
 if (typeof window !== 'undefined') {
     window.onload = async () => {
         try {
+            setupCoordinateConversion('benchmark');
             const module = await Benchmark({ locateFile: (file: string) => './wasm-mt/' + file });
             if (module === undefined) {
                 throw new Error("Benchmark init failed. Please check the .wasm file path!.");
@@ -37,7 +38,7 @@ if (typeof window !== 'undefined') {
             const emojiFontBuffer = await fetch(emojiFontPath).then((response) => response.arrayBuffer());
             const emojiFontUIntArray = new Uint8Array(emojiFontBuffer);
             skiaView.registerFonts(fontUIntArray, emojiFontUIntArray);
-            updateSize(skiaView);
+            setCanvasDefaultSize(skiaView);
             startDraw(skiaView);
         } catch (error) {
             console.error(error);
@@ -46,6 +47,6 @@ if (typeof window !== 'undefined') {
     };
 
     window.onresize = () => {
-        window.setTimeout(updateSize(skiaView), 300);
+        window.setTimeout(() => updateSize(skiaView), 300);
     };
 }
