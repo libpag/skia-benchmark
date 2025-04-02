@@ -53,7 +53,6 @@ export function setCanvasDefaultSize(skiaView: SkiaView) {
 
     container.style.backgroundColor = '#2c2c2c';
     canvas.style.border = '10px solid #d2d2d2';
-    canvas.style.boxSizing = 'border-box';
     canvas.style.boxSizing = 'content-box';
     canvas.style.backgroundColor = '#ffffff';
     const scaleFactor = window.devicePixelRatio;
