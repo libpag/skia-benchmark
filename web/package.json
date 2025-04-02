@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "hhttps://github.com/libpag/skia-benchmark"
+    "url": "https://github.com/libpag/skia-benchmark"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "~28.0.3",
