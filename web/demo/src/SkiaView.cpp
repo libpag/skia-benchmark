@@ -179,7 +179,7 @@ void SkiaView::draw() {
     return;
   }
   auto canvas = skSurface->getCanvas();
-  canvas->clear(SK_ColorWHITE);
+  canvas->clear({0.87f, 0.87f, 0.87f, 1.0f});
   auto numBenches = benchmark::Bench::Count();
   auto index = (drawIndex % numBenches);
   auto bench = benchmark::Bench::GetByIndex(index);
