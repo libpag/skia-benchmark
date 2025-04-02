@@ -1,6 +1,10 @@
 ## Introduction
-A benchmark project for the skia graphics library. It is used to test the performance of the skia
-graphics library on different platforms.
+A benchmark project for the [Skia](https://skia.org/) graphics library. It is used to test the 
+performance of the Skia graphics library on different platforms.
+
+There is also a related project, [tgfx-benchmark](https://github.com/libpag/tgfx-benchmark), which
+tests the performance of the [TGFX](https://github.com/Tencent/tgfx) graphics library using the same
+benchmark cases.
 
 ## Build Prerequisites
 
