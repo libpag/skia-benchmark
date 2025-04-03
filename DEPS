@@ -4,7 +4,7 @@
     "common": [
       {
         "url": "https://github.com/libpag/vendor_tools.git",
-        "commit": "2827057f9dcc39797d9e3de831f35e0c193d14a3",
+        "commit": "8013e2bb7179eb8b1c4925efce58fc5ba2953afe",
         "dir": "third_party/vendor_tools"
       },
       {
