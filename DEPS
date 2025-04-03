@@ -4,7 +4,7 @@
     "common": [
       {
         "url": "https://github.com/libpag/vendor_tools.git",
-        "commit": "add64948d98195ccb2cddfc2b770c3a40b91b484",
+        "commit": "2827057f9dcc39797d9e3de831f35e0c193d14a3",
         "dir": "third_party/vendor_tools"
       },
       {
@@ -19,6 +19,10 @@
       {
         "command": "depsync --clean",
         "dir": "third_party"
+      },
+      {
+        "command": "node ../../update_emsdk.js",
+        "dir": "third_party/skia"
       }
     ]
   }

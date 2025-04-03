@@ -11,7 +11,6 @@ Here are the minimum tools needed to build skia-benchmark on different platforms
 - NodeJS 14.14.0+
 - Ninja 1.9.0+
 - CMake 3.13.0+
-- Emscripten 3.1.58+
 - Python3 3.8+
 
 

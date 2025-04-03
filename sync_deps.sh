@@ -11,5 +11,3 @@ else
 fi
 
 depsync || exit 1
-
-./update_skia_emscripten.sh
