@@ -19,6 +19,10 @@
       {
         "command": "depsync --clean",
         "dir": "third_party"
+      },
+      {
+        "command": "node ../../update_emsdk.js",
+        "dir": "third_party/skia"
       }
     ]
   }
