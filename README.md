@@ -18,7 +18,6 @@ Here are the minimum tools needed to build skia-benchmark on different platforms
 - NodeJS 14.14.0+
 - Ninja 1.9.0+
 - CMake 3.13.0+
-- Emscripten 3.1.58+
 - Python3 3.8+
 
 
@@ -129,44 +128,26 @@ npm install
 Then, run the following command to build the project:
 
 ```
-npm run build:st
+npm run build
 ```
 
 Finally, run the following command to start the development server:
 
 ```
-npm run server:st
+npm run server
 ```
-This will open [http://localhost:8071/index-st.html](http://localhost:8071/index-st.html)
+This will open [http://localhost:8071/index.html](http://localhost:8071/index.html)
 in your default browser. You can also open it manually to view the demo.
 
-The above commands build and run a single-threaded version.
+The above commands build and run a multithreaded version.
 
-To build a multithreaded version, you need to upgrade the Emscripten version in Skia to 3.1.73 or later. The specific changes are as follows:
-
-In the skia directory, modify the DEPS file, change：
-```
-https://skia.googlesource.com/external/github.com/emscripten-core/emsdk.git@a896e3d066448b3530dbcaa48869fafefd738f57
-```
-to:
-```
-https://skia.googlesource.com/external/github.com/emscripten-core/emsdk.git@6abe5123c34a7751a2d5b679e856b2591ba04145
-```
-In the bin/activate-emsdk file, change:
-```
-EMSDK_VERSION = '3.1.44'
-```
-to:
-```
-EMSDK_VERSION = '3.1.73'
-```
-Then, just remove the suffix ":st" to each command. For example:
+To build a single-threaded version, just add the suffix ":st" to each command. For example:
 
 ```
-npm run build
+npm run build:st
 
-npm run serser
+npm run serser:st
 ``` 
-This will open [http://localhost:8071/index.html](http://localhost:8071/index.html)
+This will open [http://localhost:8071/index-st.html](http://localhost:8071/index-st.html)
 in your default browser. You can also open it manually to view the demo.
 
