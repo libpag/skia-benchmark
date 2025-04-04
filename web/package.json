@@ -4,11 +4,11 @@
   "description": "Skia Test Graphics",
   "scripts": {
     "clean": "rimraf ../third_party/out/skia/web demo/build demo/wasm demo/wasm-mt demo/.*.md5 demo/*.js demo/*.map demo/cmake-build-*",
-    "build:skia": "../build_vendor -p web -a wasm-mt -v",
-    "build": "npm run build:skia && source ../third_party/skia/third_party/externals/emsdk/emsdk_env.sh && node script/cmake.demo.js -a wasm-mt && rollup -c ./script/rollup.demo.js --environment ARCH:wasm-mt",
+    "build:skia": "node ../build_vendor -p web -a wasm-mt -v",
+    "build": "npm run build:skia && node script/cmake.demo.js -a wasm-mt && rollup -c ./script/rollup.demo.js --environment ARCH:wasm-mt",
     "server": "node server.js wasm-mt",
-    "build:skia:st": "../build_vendor -p web -a wasm -v",
-    "build:st": "npm run build:skia:st && source ../third_party/skia/third_party/externals/emsdk/emsdk_env.sh && node script/cmake.demo.js -a wasm && rollup -c ./script/rollup.demo.js --environment ARCH:wasm",
+    "build:skia:st": "node ../build_vendor -p web -a wasm -v",
+    "build:st": "npm run build:skia:st && node script/cmake.demo.js -a wasm && rollup -c ./script/rollup.demo.js --environment ARCH:wasm",
     "server:st": "node server.js"
   },
   "repository": {
