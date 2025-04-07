@@ -243,6 +243,11 @@ void SkiaView::showPerfData(bool status) {
   showPerfDataFlag = status;
 }
 
+void SkiaView::setAntiAlias(bool aa) {
+  ParticleBench::SetAntiAlias(aa);
+  appHost->resetFrames();
+}
+
 }  // namespace benchmark
 int main() {
   return 0;

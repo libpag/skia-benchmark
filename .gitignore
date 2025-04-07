@@ -73,3 +73,4 @@ QTCMAKE.cfg
 web/demo/*.js
 web/demo/*/*.js
 web/package-lock.json
+web/demo/build-benchmark

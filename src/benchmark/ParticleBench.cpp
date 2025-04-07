@@ -35,6 +35,7 @@ static size_t InitDrawCount = 1;
 static float TargetFPS = 60.0f;
 static size_t MaxDrawCount = 1000000;
 static size_t IncreaseStep = 1000;
+static bool AntiAliasFlag = true;
 
 static std::string ToString(GraphicType type) {
   switch (type) {
@@ -105,7 +106,7 @@ void ParticleBench::Init(const AppHost* host) {
     SkColor4f color = SkColors::kBlack;
     color[i] = 1.f;
     paints[i].setColor4f(color);
-    paints->setAntiAlias(true);
+    paints->setAntiAlias(AntiAliasFlag);
   }
   startRect = SkRect::MakeWH(20.f * host->density(), 20.f * host->density());
   graphics.resize(MaxDrawCount);
@@ -336,6 +337,10 @@ bool ParticleBench::isMaxDrawCountReached() const {
 
 PerfData ParticleBench::getPerfData() const {
   return perfData;
+}
+
+void ParticleBench::SetAntiAlias(bool aa) {
+  AntiAliasFlag = aa;
 }
 
 }  // namespace benchmark
