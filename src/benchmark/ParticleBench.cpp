@@ -35,6 +35,7 @@ static size_t InitDrawCount = 1;
 static float TargetFPS = 60.0f;
 static size_t MaxDrawCount = 1000000;
 static size_t IncreaseStep = 1000;
+static bool AntiAliasFlag = true;
 
 static std::string ToString(GraphicType type) {
   switch (type) {
@@ -336,6 +337,10 @@ bool ParticleBench::isMaxDrawCountReached() const {
 
 PerfData ParticleBench::getPerfData() const {
   return perfData;
+}
+
+void ParticleBench::SetAntiAlias(bool aa) {
+  AntiAliasFlag = aa;
 }
 
 }  // namespace benchmark

@@ -54,6 +54,8 @@ class SkiaView {
 
   void showPerfData(bool status);
 
+  void setAntiAlias(bool aa);
+
   int drawIndex = 0;
   std::shared_ptr<benchmark::AppHost> appHost = nullptr;
   bool showPerfDataFlag = true;
