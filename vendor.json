@@ -10,7 +10,6 @@
           "file": "scripts/skia/build_mac.sh"
         },
         "win": {
-          "executor": "cmd.exe",
           "file": "scripts/skia/build_win.bat"
         },
         "web": {
