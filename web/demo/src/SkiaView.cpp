@@ -25,15 +25,14 @@
 #include "include/core/SkFontMgr.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkSurface.h"
-#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
-#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/gpu/gl/GrGLInterface.h"
 #include "include/ports/SkFontMgr_data.h"
 #include "include/ports/SkFontMgr_empty.h"
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
-#include "src/ports/SkTypeface_FreeType.h"
 #include "tools/Clock.h"
 
 static constexpr int64_t FLUSH_INTERVAL = 300000;

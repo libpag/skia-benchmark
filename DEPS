@@ -9,7 +9,7 @@
       },
       {
         "url": "https://github.com/google/skia.git",
-        "commit": "6c2dc3e74ea0bd464ba1c6679ded0b643101e682",
+        "commit": "18df6cbca7783c3c24a564ef54a12fc9c2d8cd70",
         "dir": "third_party/skia"
       }
     ]

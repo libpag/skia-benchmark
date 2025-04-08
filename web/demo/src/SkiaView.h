@@ -22,7 +22,7 @@
 #include <emscripten/html5.h>
 #include "base/AppHost.h"
 #include "benchmark/ParticleBench.h"
-#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/GrDirectContext.h"
 
 using namespace emscripten;
 namespace benchmark {

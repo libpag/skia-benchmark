@@ -19,7 +19,7 @@
 #include "WindowContext.h"
 #include "include/core/SkRefCnt.h"
 #include "include/core/SkSurface.h"
-#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/gpu/gl/GrGLInterface.h"
 
 namespace skiawindow {
 
