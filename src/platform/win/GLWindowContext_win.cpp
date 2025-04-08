@@ -18,7 +18,7 @@
 #include "platform/win/GLWindowContext_win.h"
 #include <GL/gl.h>
 #include <Windows.h>
-#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/gpu/gl/GrGLInterface.h"
 #include "platform/win/WGLInterface.h"
 #include "platform/win/WGLUtil.h"
 #include "window_context/GLWindowContext.h"
