@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 // run 'node build_vendor -h" to print help message
+require("./web/script/setup.emsdk");
 require("./third_party/vendor_tools/vendor-build");
