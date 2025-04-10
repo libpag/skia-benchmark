@@ -9,7 +9,6 @@ if (!fs.existsSync(emsdkPath)) {
     const isWin = process.platform === 'win32';
     if (isWin) {
         Utils.exec("python tools/git-sync-deps", skiaPath);
-        Utils.exec("python bin/fetch-ninja", skiaPath);
     } else {
         Utils.exec("python3 tools/git-sync-deps", skiaPath);
     }
