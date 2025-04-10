@@ -4,11 +4,7 @@ const process = require("process");
 const Utils = require("../../third_party/vendor_tools/lib/Utils");
 
 const ROOT_PATH = path.resolve(__dirname, '../..');
-
-console.log(`---ROOT_PATH: ${ROOT_PATH}`);
-
 const isWin = process.platform === 'win32';
-
 const skiaPath = path.join(ROOT_PATH, 'third_party', 'skia');
 
 function buildArch(arch) {
@@ -92,22 +88,13 @@ function buildArch(arch) {
 
     const filteredArgs = args.filter(arg => arg !== '');
     const argString = filteredArgs.join(' ');
-
-    console.log(`Generated arguments for ${arch}:`);
-    console.log(argString);
-
-    console.log(`---OUT_REAL_PATH: ${OUT_REAL_PATH}`);
-    console.log(`Current working directory: ${process.cwd()}`);
     const gnCommand = isWin ? 'bin\\gn' : 'bin/gn';
     let cmd = `${gnCommand} gen ${OUT_REAL_PATH} --args="${argString}"`;
-    console.log(`---cmd: ${cmd}`);
     Utils.exec(cmd, skiaPath);
 
     const ninjaPath = isWin ? 'third_party\\ninja\\ninja' : 'ninja';
     const ninjaCmd = `${ninjaPath} -C "${OUT_REAL_PATH}"`
-    console.log(`---ninjaCmd: ${ninjaCmd}`);
     Utils.exec(ninjaCmd, skiaPath);
-    console.log(`-------success-1--------------------`);
 }
 
 const VENDOR_ARCHS = process.env.VENDOR_ARCHS || 'wasm,wasm-mt';
