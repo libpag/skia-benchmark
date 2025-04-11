@@ -7,11 +7,8 @@ const emsdkPath = path.resolve(__dirname, '../../third_party/skia/third_party/ex
 if (!fs.existsSync(emsdkPath)) {
     const skiaPath = path.resolve(__dirname, '../../third_party/skia');
     const isWin = process.platform === 'win32';
-    if (isWin) {
-        Utils.exec("python tools/git-sync-deps", skiaPath);
-    } else {
-        Utils.exec("python3 tools/git-sync-deps", skiaPath);
-    }
+    const pythonCmd = isWin ? "python" : "python3";
+    Utils.exec(`${pythonCmd} tools/git-sync-deps`, skiaPath);
 }
 
 const emscriptenPath = path.resolve(emsdkPath, 'upstream/emscripten');

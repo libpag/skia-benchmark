@@ -6,12 +6,9 @@ const Utils = require("../../third_party/vendor_tools/lib/Utils");
 const ROOT_PATH = path.resolve(__dirname, '../..');
 const isWin = process.platform === 'win32';
 const skiaPath = path.join(ROOT_PATH, 'third_party', 'skia');
-if (isWin) {
-    Utils.exec("python tools/git-sync-deps", skiaPath);
-    Utils.exec("python bin/fetch-ninja", skiaPath);
-} else {
-    Utils.exec("python3 tools/git-sync-deps", skiaPath);
-}
+const pythonCmd = isWin ? "python" : "python3";
+Utils.exec(`${pythonCmd} tools/git-sync-deps`, skiaPath);
+Utils.exec(`${pythonCmd} bin/fetch-ninja`, skiaPath);
 
 function buildArch(arch) {
     let OUT_REAL_PATH = path.join(ROOT_PATH, 'third_party', 'out', 'skia', 'web', arch);
@@ -94,11 +91,11 @@ function buildArch(arch) {
 
     const filteredArgs = args.filter(arg => arg !== '');
     const argString = filteredArgs.join(' ');
-    const gnCommand = isWin ? 'bin\\gn' : 'bin/gn';
-    let cmd = `${gnCommand} gen ${OUT_REAL_PATH} --args="${argString}"`;
+    const gnCmd = path.join(skiaPath, 'bin', 'gn');
+    let cmd = `${gnCmd} gen ${OUT_REAL_PATH} --args="${argString}"`;
     Utils.exec(cmd, skiaPath);
 
-    const ninjaPath = isWin ? 'third_party\\ninja\\ninja' : 'ninja';
+    const ninjaPath = path.join(skiaPath, 'third_party', 'ninja', 'ninja');
     const ninjaCmd = `${ninjaPath} -C "${OUT_REAL_PATH}"`
     Utils.exec(ninjaCmd, skiaPath);
 }
