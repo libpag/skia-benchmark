@@ -28,3 +28,25 @@ function updateFile(filePath, regex, newLine) {
 
 updateFile(DEPS_PATH, /"third_party\/externals\/emsdk".*/, EMSDK_COMMIT_LINE);
 updateFile(ACTIVATE_EMSDK_PATH, /^EMSDK_VERSION =.*/m, EMSDK_VERSION_LINE);
+
+/**
+ * When compiling the wasm version on the Windows platform, the following modifications are
+ * required. For details, refer to https://issues.skia.org/issues/40045374.
+ */
+if (process.platform === 'win32') {
+    const BUILD_GN_PATH = path.join(ROOT_PATH, 'third_party', 'freetype2', 'BUILD.gn');
+    try {
+        let content = fs.readFileSync(BUILD_GN_PATH, 'utf8');
+        content = content.replace(
+            /<freetype-no-type1\/freetype\/config\/ftmodule.h>/g,
+            '\\"freetype-no-type1/freetype/config/ftmodule.h\\"'
+        ).replace(
+            /<freetype-no-type1\/freetype\/config\/ftoption.h>/g,
+            '\\"freetype-no-type1/freetype/config/ftoption.h\\"'
+        );
+        fs.writeFileSync(BUILD_GN_PATH, content, 'utf8');
+        console.log('BUILD.gn file updated successfully!');
+    } catch (err) {
+        console.error(`Error updating BUILD.gn file: ${err.message}`);
+    }
+}
