@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const EMSDK_COMMIT = "9dbdc4b3437750b85d16931c7c801bb71a782122";
+const EMSDK_COMMIT = "c69d433d8509c5c64564c2f0d054bf102a5cf67e";
 const EMSDK_VERSION = "latest";
 
 const ROOT_PATH = process.cwd();
