@@ -31,14 +31,15 @@ if (DEFINED EMSCRIPTEN)
     list(APPEND BENCHMARK_COMPILE_OPTIONS -fno-rtti -DEMSCRIPTEN_HAS_UNBOUND_TYPE_NAMES=0)
     list(APPEND BENCHMARK_LINK_OPTIONS --no-entry -lembind -fno-rtti -DEMSCRIPTEN_HAS_UNBOUND_TYPE_NAMES=0 -sEXPORT_NAME='Benchmark' -sWASM=1 -sASYNCIFY
             -sMAX_WEBGL_VERSION=2 -sEXPORTED_RUNTIME_METHODS=['GL','HEAPU8'] -sEXPORTED_FUNCTIONS=['_main'] -sMODULARIZE=1
-            -sENVIRONMENT='web,worker' -sEXPORT_ES6=1 -sASSERTIONS=2 -sDISABLE_EXCEPTION_CATCHING=0
+            -sENVIRONMENT=web,worker -sEXPORT_ES6=1 -sASSERTIONS=2 -sDISABLE_EXCEPTION_CATCHING=0
             -sDISABLE_EXCEPTION_CATCHING -sNODEJS_CATCH_EXIT=0 -sDYNAMIC_EXECUTION=0 -sFORCE_FILESYSTEM=0 -sFILESYSTEM=0
     )
-    if (${EMSCRIPTEN_VERSION} VERSION_LESS "4.0.4")
-        list(APPEND BENCHMARK_LINK_OPTIONS -sUSE_ES6_IMPORT_META=0)
-    elseif (${EMSCRIPTEN_VERSION} VERSION_GREATER_EQUAL "4.0.4" AND ${EMSCRIPTEN_VERSION} VERSION_LESS "4.0.6")
-        message(FATAL_ERROR "Emscripten version ${EMSCRIPTEN_VERSION} is not supported. Please upgrade to 4.0.6 or higher.")
-    endif ()
+    set(unsupported_emsdk_versions "4.0.11")
+    foreach (unsupported_version IN LISTS unsupported_emsdk_versions)
+        if (${EMSCRIPTEN_VERSION} VERSION_EQUAL ${unsupported_version})
+            message(FATAL_ERROR "Emscripten version ${EMSCRIPTEN_VERSION} is not supported.")
+        endif ()
+    endforeach ()
     if (EMSCRIPTEN_PTHREADS)
         list(APPEND BENCHMARK_LINK_OPTIONS -sUSE_PTHREADS=1 -sINITIAL_MEMORY=32MB -sALLOW_MEMORY_GROWTH=1
                 -sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency -sPROXY_TO_PTHREAD=1
