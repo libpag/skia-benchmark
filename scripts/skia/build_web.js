@@ -29,7 +29,7 @@ function buildArch(arch) {
         'skia_use_expat=false',
         'skia_use_fontconfig=false',
         'skia_use_freetype=true',
-        'skia_use_libheif=false',
+        'skia_use_libavif=false',
         'skia_use_libjpeg_turbo_decode=true',
         'skia_use_libjpeg_turbo_encode=true',
         'skia_use_no_jpeg_encode=false',
