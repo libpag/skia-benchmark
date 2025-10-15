@@ -17,7 +17,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import Benchmark from './wasm/Benchmark';
+import Benchmark from './wasm/benchmark';
 import {SkiaView, startDraw, updateSize, setCanvasDefaultSize, setupCoordinateConversion} from "./common";
 
 let skiaView: SkiaView;
