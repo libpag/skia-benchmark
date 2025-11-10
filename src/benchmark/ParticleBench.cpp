@@ -106,7 +106,7 @@ void ParticleBench::Init(const AppHost* host) {
     SkColor4f color = SkColors::kBlack;
     color[i] = 1.f;
     paints[i].setColor4f(color);
-    paints->setAntiAlias(AntiAliasFlag);
+    paints[i].setAntiAlias(AntiAliasFlag);
   }
   startRect = SkRect::MakeWH(20.f * host->density(), 20.f * host->density());
   graphics.resize(MaxDrawCount);
