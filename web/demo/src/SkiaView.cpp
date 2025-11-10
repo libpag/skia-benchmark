@@ -247,6 +247,16 @@ void SkiaView::setAntiAlias(bool aa) {
   appHost->resetFrames();
 }
 
+void SkiaView::setStroke(bool stroke) {
+  ParticleBench::SetStroke(stroke);
+  appHost->resetFrames();
+}
+
+void SkiaView::setLineJoinType(int type) {
+  ParticleBench::SetLineJoinType(type);
+  appHost->resetFrames();
+}
+
 }  // namespace benchmark
 int main() {
   return 0;
