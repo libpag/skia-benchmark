@@ -36,7 +36,7 @@ static float TargetFPS = 60.0f;
 static size_t MaxDrawCount = 1000000;
 static size_t IncreaseStep = 1000;
 static bool AntiAliasFlag = true;
-static bool StrokeFlag = true;
+static bool StrokeFlag = false;
 static SkPaint::Join LineJoinType = SkPaint::Join::kMiter_Join;
 
 static std::string ToString(GraphicType type) {
