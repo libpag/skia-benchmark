@@ -40,7 +40,8 @@ EMSCRIPTEN_BINDINGS(SkiaDemo) {
       .function("updateDrawParam", &SkiaView::updateDrawParam)
       .function("updateGraphicType", &SkiaView::updateGraphicType)
       .function("showPerfData", &SkiaView::showPerfData)
-      .function("setAntiAlias", &SkiaView::setAntiAlias);
+      .function("setAntiAlias", &SkiaView::setAntiAlias)
+      .function("setStroke", &SkiaView::setStroke);
 
   value_object<DrawParam>("DrawParam")
       .field("startCount", &DrawParam::startCount)
