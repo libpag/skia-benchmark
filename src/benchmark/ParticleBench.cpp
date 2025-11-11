@@ -112,7 +112,7 @@ void ParticleBench::Init(const AppHost* host) {
     if (StrokeFlag) {
       paints[i].setStyle(SkPaint::Style::kStroke_Style);
       paints[i].setStrokeWidth(4.0f);
-      paints[i].setStrokeJoin(SkPaint::Join::kRound_Join);
+      paints[i].setStrokeJoin(LineJoinType);
     } else {
       paints[i].setStyle(SkPaint::Style::kFill_Style);
     }
@@ -353,10 +353,6 @@ void ParticleBench::SetAntiAlias(bool aa) {
 
 void ParticleBench::SetStroke(bool stroke) {
   StrokeFlag = stroke;
-}
-
-void ParticleBench::SetLineJoinType(int type) {
-  LineJoinType = static_cast<SkPaint::Join>(type);
 }
 
 }  // namespace benchmark

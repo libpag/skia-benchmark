@@ -252,11 +252,6 @@ void SkiaView::setStroke(bool stroke) {
   appHost->resetFrames();
 }
 
-void SkiaView::setLineJoinType(int type) {
-  ParticleBench::SetLineJoinType(type);
-  appHost->resetFrames();
-}
-
 }  // namespace benchmark
 int main() {
   return 0;
