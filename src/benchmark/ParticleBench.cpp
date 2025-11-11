@@ -35,7 +35,9 @@ static size_t InitDrawCount = 1;
 static float TargetFPS = 60.0f;
 static size_t MaxDrawCount = 1000000;
 static size_t IncreaseStep = 1000;
-static bool AntiAliasFlag = true;
+static bool AntiAliasFlag = false;
+static bool StrokeFlag = false;
+static SkPaint::Join LineJoinType = SkPaint::Join::kMiter_Join;
 
 static std::string ToString(GraphicType type) {
   switch (type) {
@@ -106,7 +108,14 @@ void ParticleBench::Init(const AppHost* host) {
     SkColor4f color = SkColors::kBlack;
     color[i] = 1.f;
     paints[i].setColor4f(color);
-    paints->setAntiAlias(AntiAliasFlag);
+    paints[i].setAntiAlias(AntiAliasFlag);
+    if (StrokeFlag) {
+      paints[i].setStyle(SkPaint::Style::kStroke_Style);
+      paints[i].setStrokeWidth(2.0f);
+      paints[i].setStrokeJoin(LineJoinType);
+    } else {
+      paints[i].setStyle(SkPaint::Style::kFill_Style);
+    }
   }
   startRect = SkRect::MakeWH(20.f * host->density(), 20.f * host->density());
   graphics.resize(MaxDrawCount);
@@ -118,8 +127,7 @@ void ParticleBench::Init(const AppHost* host) {
     const auto size = (4.f + rectDistribution(rectRng) * 10.f) * host->density();
     auto& graphic = graphics[i];
     if (graphicType == GraphicType::Oval) {
-      const float ratio = 0.5f + rectDistribution(rectRng);
-      graphic.rect.setXYWH(-size, -size, size, ratio * size);
+      graphic.rect.setXYWH(-size, -size, size, 0.8f * size);
     } else {
       graphic.rect.setXYWH(-size, -size, size, size);
     }
@@ -341,6 +349,10 @@ PerfData ParticleBench::getPerfData() const {
 
 void ParticleBench::SetAntiAlias(bool aa) {
   AntiAliasFlag = aa;
+}
+
+void ParticleBench::SetStroke(bool stroke) {
+  StrokeFlag = stroke;
 }
 
 }  // namespace benchmark
