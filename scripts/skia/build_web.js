@@ -27,6 +27,7 @@ function buildArch(arch) {
         'skia_use_webgl=true',
         'skia_use_webgpu=false',
         'skia_use_expat=false',
+        'skia_use_system_expat=false',
         'skia_use_fontconfig=false',
         'skia_use_freetype=true',
         'skia_use_libavif=false',
