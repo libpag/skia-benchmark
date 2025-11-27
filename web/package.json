@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Skia Test Graphics",
   "scripts": {
-    "clean": "rimraf ../third_party/out/skia/web demo/build demo/wasm demo/wasm-mt demo/.*.md5 demo/*.js demo/*.map demo/cmake-build-*",
+    "clean": "rimraf --glob ../third_party/out/skia/web demo/build demo/wasm demo/wasm-mt demo/.*.md5 demo/*.js demo/*.map demo/cmake-build-*",
     "build:skia": "node ../build_vendor -p web -a wasm-mt -v",
     "build": "npm run build:skia && node script/cmake.demo.js -a wasm-mt && rollup -c ./script/rollup.demo.js --environment ARCH:wasm-mt",
     "server": "node server.js wasm-mt",
