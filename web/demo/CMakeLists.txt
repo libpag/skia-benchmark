@@ -43,7 +43,7 @@ if (DEFINED EMSCRIPTEN)
     if (EMSCRIPTEN_PTHREADS)
         list(APPEND BENCHMARK_LINK_OPTIONS -sUSE_PTHREADS=1 -sINITIAL_MEMORY=32MB -sALLOW_MEMORY_GROWTH=1
                 -sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency -sPROXY_TO_PTHREAD=1
-                -sEXIT_RUNTIME=0 -sINVOKE_RUN=0 -sMALLOC=mimalloc)
+                -sEXIT_RUNTIME=0 -sINVOKE_RUN=0 -sMALLOC=dlmalloc)
         list(APPEND BENCHMARK_COMPILE_OPTIONS -fPIC -pthread)
         file(GLOB SKIA_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/out/skia/web/wasm-mt/libskia.a")
     else ()
