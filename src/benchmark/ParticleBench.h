@@ -18,17 +18,17 @@
 
 #pragma once
 
-#include <deque>
 #include "base/Bench.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkRect.h"
+#include "include/core/SkTypes.h"
 
 namespace benchmark {
 
-enum class GraphicType { Rect, Circle, Oval, RRect, Star };
+enum class GraphicType { Rect, Circle, Oval, RRect, Star, Text };
 
 struct GraphicData {
   SkRect rect{0, 0, 1, 1};
@@ -47,6 +47,12 @@ struct PerfData {
   float fps = 0.0f;
   float drawTime = 0.0f;
   size_t drawCount = 0;
+};
+
+struct GlyphRunData {
+  SkFont font = {};
+  std::vector<SkGlyphID> glyphs = {};
+  std::vector<SkPoint> positions = {};
 };
 
 class ParticleBench : public Bench {
@@ -94,6 +100,8 @@ class ParticleBench : public Bench {
 
   void DrawStar(SkCanvas* canvas) const;
 
+  void DrawText(SkCanvas* canvas) const;
+
   void DrawGraphics(SkCanvas* canvas) const;
 
  private:
@@ -104,14 +112,17 @@ class ParticleBench : public Bench {
   std::vector<GraphicData> graphics = {};
   std::vector<SkPath> paths = {};
   SkRect startRect = SkRect::MakeEmpty();
-  SkPaint paints[3];  // red, green, blue solid paints
+  SkPaint paints[3];       // red, green, blue solid paints
+  SkPaint textPaint = {};  // soft purple for text
   int64_t lastFlushTime = -1;
   SkFont fpsFont = {};
   SkColor4f fpsColor = SkColors::kGreen;
   std::vector<std::string> status = {};
   GraphicType graphicType = GraphicType::Rect;
   bool maxDrawCountReached = false;
+  size_t textSpawnedCount = 0;  // Track how many glyphs have been spawned from mouse
   PerfData perfData = {};
+  GlyphRunData glyphRun = {};
 };
 
 }  // namespace benchmark

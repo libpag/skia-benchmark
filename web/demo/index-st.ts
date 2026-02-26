@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
                 throw new Error("Benchmark init failed. Please check the .wasm file path!.");
             }
             skiaView = module.SkiaView.MakeFrom('#benchmark');
-            var fontPath = "../../resources/font/SFNSRounded.ttf";
+            var fontPath = "../../resources/font/NotoSansSC-Regular.otf";
             const fontBuffer = await fetch(fontPath).then((response) => response.arrayBuffer());
             const fontUIntArray = new Uint8Array(fontBuffer);
             var emojiFontPath = "../../resources/font/NotoColorEmoji.ttf";

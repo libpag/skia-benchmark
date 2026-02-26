@@ -22,6 +22,7 @@
 #include <random>
 #include <sstream>
 #include "include/core/SkPath.h"
+#include "include/core/SkTextBlob.h"
 #include "tools/Clock.h"
 
 namespace benchmark {
@@ -51,6 +52,8 @@ static std::string ToString(GraphicType type) {
       return "Oval";
     case GraphicType::Star:
       return "Star";
+    case GraphicType::Text:
+      return "Text";
     default:
       return "Unknown";
   }
@@ -90,6 +93,46 @@ static SkPath CreateStar(const SkRect& rect) {
   return path;
 }
 
+std::vector<SkGlyphID> convertTextToGlyphs(const SkFont& font, std::string_view text) {
+  size_t glyphCount =
+      font.textToGlyphs(text.data(), text.size(), SkTextEncoding::kUTF8, SkSpan<SkGlyphID>());
+
+  std::vector<SkGlyphID> glyphs(glyphCount);
+  font.textToGlyphs(text.data(), text.size(), SkTextEncoding::kUTF8, SkSpan<SkGlyphID>(glyphs));
+
+  return glyphs;
+}
+
+static GlyphRunData CreateGlyphRun(const AppHost* host,
+                                   const std::vector<GraphicData>& graphicDatas) {
+  constexpr std::string_view LONG_TEXT =
+      R"(君子曰：学不可以已。青，取之于蓝，而青于蓝；冰，水为之，而寒于水。木直中绳，
+𫐓以为轮，其曲中规。虽有槁暴，不复挺者，𫐓使之然也。故木受绳则直，金就砺则利，君子博学而日参省乎己，则知明而行无过矣。
+故不登高山，不知天之高也；不临深溪，不知地之厚也；不闻先王之遗言，不知学问之大也。干、越、夷、貉之子，生而同声，
+长而异俗，教使之然也。诗曰：“嗟尔君子，无恒安息。靖共尔位，好是正直。神之听之，介尔景福。”神莫大于化道，福莫长于无祸。
+（此段教材无）吾尝终日而思矣，不如须臾之所学也；吾尝跂而望矣，不如登高之博见也。登高而招，臂非加长也，而见者远；顺风而呼，
+声非加疾也，而闻者彰。假舆马者，非利足也，而致千里；假舟楫者，非能水也，而绝江河。君子生非异也，善假于物也。南方有鸟焉，
+名曰蒙鸠，以羽为巢，而编之以发，系之苇苕，风至苕折，卵破子死。巢非不完也，所系者然也。西方有木焉，名曰射干，茎长四寸，
+生于高山之上，而临百仞之渊，木茎非能长也，所立者然也。蓬生麻中，不扶而直；白沙在涅，与之俱黑。兰槐之根是为芷，其渐之滫，
+君子不近，庶人不服。其质非不美也，所渐者然也。)";
+  auto font = SkFont(host->getTypeFace("default"), 10.f * host->density());
+  std::vector<SkGlyphID> sourceGlyphIDs = convertTextToGlyphs(font, LONG_TEXT);
+  if (sourceGlyphIDs.empty()) {
+    return {};
+  }
+  const auto totalCount = graphicDatas.size();
+  const auto sourceGlyphCount = sourceGlyphIDs.size();
+  std::vector<SkGlyphID> glyphIDs = {};
+  std::vector<SkPoint> positions = {};
+  glyphIDs.reserve(totalCount);
+  positions.reserve(totalCount);
+  for (size_t i = 0; i < totalCount; ++i) {
+    glyphIDs.push_back(sourceGlyphIDs[i % sourceGlyphCount]);
+    positions.push_back(SkPoint::Make(graphicDatas[i].rect.left(), graphicDatas[i].rect.top()));
+  }
+  return {font, std::move(glyphIDs), std::move(positions)};
+}
+
 void ParticleBench::Init(const AppHost* host) {
   auto hostWidth = static_cast<float>(host->width());
   auto hostHeight = static_cast<float>(host->height());
@@ -101,6 +144,7 @@ void ParticleBench::Init(const AppHost* host) {
   status = {};
   drawCount = InitDrawCount;
   maxDrawCountReached = false;
+  textSpawnedCount = 0;
   perfData = {};
   fpsFont = SkFont(host->getTypeFace("default"), 40 * host->density());
 
@@ -117,6 +161,8 @@ void ParticleBench::Init(const AppHost* host) {
       paints[i].setStyle(SkPaint::Style::kFill_Style);
     }
   }
+  // Soft purple for text
+  textPaint.setColor({0.6f, 0.5f, 0.7f, 1.0f});
   startRect = SkRect::MakeWH(20.f * host->density(), 20.f * host->density());
   graphics.resize(MaxDrawCount);
   std::mt19937 rectRng(18);
@@ -139,6 +185,9 @@ void ParticleBench::Init(const AppHost* host) {
     for (size_t i = 0; i < MaxDrawCount; i++) {
       paths[i] = CreateStar(graphics[i].rect);
     }
+  }
+  if (graphicType == GraphicType::Text) {
+    glyphRun = CreateGlyphRun(host, graphics);
   }
 }
 
@@ -165,16 +214,39 @@ void ParticleBench::AnimateRects(const AppHost* host) {
     startY = screenRect.centerY();
   }
   startRect.offsetTo(startX - startRect.width() * 0.5f, startY - startRect.height() * 0.5f);
+  SkRect respawnBounds{0, 0, width, height};
+  const auto isTextType = graphicType == GraphicType::Text;
+  if (isTextType) {
+    // Expand bounds for text clipping test
+    respawnBounds.outset(width, height);
+  }
   for (size_t i = 0; i < drawCount; i++) {
     auto& graphic = graphics[i];
     auto& rect = graphic.rect;
-    if (rect.right() <= 0 || rect.left() >= width || rect.bottom() <= 0 || rect.top() >= height) {
+    bool shouldRespawn;
+    if (isTextType) {
+      // For Text: new particles use screen rect to respawn from mouse position,
+      // already spawned particles use expanded border for clipping test
+      auto isNewParticle = i >= textSpawnedCount;
+      shouldRespawn = isNewParticle ? !SkRect::Intersects(rect, screenRect)
+                                    : !SkRect::Intersects(rect, respawnBounds);
+    } else {
+      // For other types: simply check screen border
+      shouldRespawn = !SkRect::Intersects(rect, respawnBounds);
+    }
+    if (shouldRespawn) {
       auto offsetX = rect.width() * 0.5f;
       auto offsetY = rect.height() * 0.5f;
       rect.offsetTo(startX - offsetX, startY - offsetY);
     } else {
       rect.offset(graphic.speedX, graphic.speedY);
     }
+    if (isTextType) {
+      glyphRun.positions[i].set(rect.left(), rect.top());
+    }
+  }
+  if (isTextType) {
+    textSpawnedCount = drawCount;
   }
 }
 
@@ -296,6 +368,17 @@ void ParticleBench::DrawStar(SkCanvas* canvas) const {
   canvas->drawRect(startRect, paint);
 }
 
+void ParticleBench::DrawText(SkCanvas* canvas) const {
+  auto subGlyphIDs = SkSpan(glyphRun.glyphs.data(), drawCount);
+  auto subPositions = SkSpan(glyphRun.positions.data(), drawCount);
+  auto textBlob = SkTextBlob::MakeFromPosGlyphs(subGlyphIDs, subPositions, glyphRun.font);
+  canvas->drawTextBlob(textBlob, 0.f, 0.f, textPaint);
+
+  SkPaint paint;
+  paint.setColor4f(SkColors::kWhite);
+  canvas->drawRect(startRect, paint);
+}
+
 void ParticleBench::DrawGraphics(SkCanvas* canvas) const {
   switch (graphicType) {
     case GraphicType::Rect:
@@ -312,6 +395,9 @@ void ParticleBench::DrawGraphics(SkCanvas* canvas) const {
       break;
     case GraphicType::Star:
       DrawStar(canvas);
+      break;
+    case GraphicType::Text:
+      DrawText(canvas);
       break;
     default:
       DrawRects(canvas);

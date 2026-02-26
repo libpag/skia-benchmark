@@ -145,7 +145,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef, const CVTimeStamp*, const 
   if (appHost == nullptr) {
     appHost = std::make_unique<benchmark::AppHost>();
     sk_sp<SkFontMgr> fontMgr = SkFontMgr_New_CoreText(nullptr);
-    auto typeface = fontMgr->matchFamilyStyle("Helvetica", SkFontStyle());
+    auto typeface = fontMgr->matchFamilyStyle("PingFang SC", SkFontStyle());
     appHost->addTypeface("default", typeface);
   } else {
     appHost->resetFrames();
